@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/api_service.dart';
 
 class CheckoutScreen extends StatelessWidget {
   const CheckoutScreen({Key? key}) : super(key: key);
@@ -415,52 +416,61 @@ class CheckoutScreen extends StatelessWidget {
   }
 
 Widget _buildBottomPayButton(BuildContext context) {
-    const Color activeGreen = Color(0xFF8C9862);
+  const Color activeGreen = Color(0xFF8C9862);
 
-    return Container(
-      color: const Color(0xFFF3EFE6), // Matches scaffold background
-      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-      child: SizedBox(
-        width: double.infinity,
-        child: ElevatedButton(
-          onPressed: () async {
-            print('Firing test request to backend...');
-            
-            // Faking some cart data to test the format
-            final result = await ApiService.createOrder(
-              customerId: 1,
-              items: [
-                {"menu_id": 101, "quantity": 2},
-                {"menu_id": 204, "quantity": 1}
-              ],
-            );
+  return Container(
+    color: const Color(0xFFF3EFE6),
+    padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+    child: SizedBox(
+      width: double.infinity,
+      child: ElevatedButton(
+        onPressed: () async {
+          // 1. Show a loading indicator
+          showDialog(
+            context: context,
+            barrierDismissible: false,
+            builder: (context) => const Center(child: CircularProgressIndicator(color: activeGreen)),
+          );
 
-            if (result != null) {
-              print('SUCCESS! Backend says: $result');
-            } else {
-              print('FAILED! (This is expected right now)');
-            }
-          },
+          print('🚀 Firing test request to backend...');
           
-          style: ElevatedButton.styleFrom(
-            backgroundColor: activeGreen,
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(vertical: 18),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
-            ),
-          ),
-          child: const Text(
-            'PAY Rp 120.000',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.0,
-            ),
-          ),
+          // 2. Call your API Service
+          final result = await ApiService.createOrder(
+            customerId: 1, // This is hardcoded for testing
+            items: [
+              {"menu_id": 101, "quantity": 2},
+              {"menu_id": 204, "quantity": 1}
+            ],
+          );
+
+          // 3. Close the loading dialog
+          if (context.mounted) Navigator.pop(context);
+
+          // 4. Handle response
+          if (result != null) {
+            print('✅ SUCCESS! Backend says: $result');
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Order placed successfully!')),
+            );
+          } else {
+            print('❌ FAILED!');
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('Failed to connect to backend.')),
+            );
+          }
+        },
+        style: ElevatedButton.styleFrom(
+          backgroundColor: activeGreen,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(vertical: 18),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+        child: const Text(
+          'PAY Rp 120.000',
+          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
         ),
       ),
-    );
+    ),
+  );
 }
 }

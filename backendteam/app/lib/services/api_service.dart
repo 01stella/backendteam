@@ -4,8 +4,7 @@ import 'package:http/http.dart' as http;
 
 class ApiService {
   // Replace this with your actual backend URL later (e.g., your GCP link or local IP)
-  static const String baseUrl = 'http://10.0.2.2:3000/api'; 
-
+  static const String baseUrl = 'http://localhost:3000/api';
   // 1. Fetch Menu Items
   static Future<List<dynamic>> fetchMenu() async {
     try {

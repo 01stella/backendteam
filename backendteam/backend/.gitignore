@@ -1,0 +1,18 @@
+# Node dependencies (Never commit these!)
+node_modules/
+npm-debug.log
+
+# Environment variables (CRITICAL: Never commit these!)
+.env
+
+# Build/Dist folders (if you add build tools later)
+dist/
+build/
+
+# IDE/Editor files
+.vscode/
+.idea/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
