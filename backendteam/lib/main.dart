@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:backendteam/screen/register.dart';
+import 'screen/history_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,6 +18,10 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
       ),
       home: const HomePage(),
+      routes: {
+        '/history': (context) => const HistoryScreen(),
+        '/register': (context) => RegisterScreen(),
+      },
       debugShowCheckedModeBanner: false,
     );
   }
@@ -67,7 +72,7 @@ class HomePage extends StatelessWidget {
               onPressed: () {
                 Navigator.push(
                   context,
-                  MaterialPageRoute(builder: (_) => const RegisterScreen()),
+                  MaterialPageRoute(builder: (_) => RegisterScreen()),
                 );
               },
               style: ElevatedButton.styleFrom(
