@@ -18,7 +18,7 @@ class CustomBottomNavBar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildNavButton(context, Icons.home_outlined, 'Home', 0, '/register'), 
+            _buildNavButton(context, Icons.home_outlined, 'Home', 0, '/home'), 
             _buildNavButton(context, Icons.coffee, 'Menu', 1, '/menu'), 
             const SizedBox(width: 48), // The empty gap for the floating QR Button
             _buildNavButton(context, Icons.receipt_long_outlined, 'History', 2, '/history'),

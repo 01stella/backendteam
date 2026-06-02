@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFF795548)),
         useMaterial3: true,
       ),
-      home: const HomePage(),
+      home: const HomeScreen(),
       routes: {
         '/history': (context) => const HistoryScreen(),
         '/register': (context) => RegisterScreen(),
