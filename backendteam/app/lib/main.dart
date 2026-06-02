@@ -29,8 +29,8 @@ class MyApp extends StatelessWidget {
         '/menu': (context) => const MenuScreen(),
         '/home': (context) => const HomeScreen(),
         '/cart': (context) => const CartScreen(),
-        '/checkout': (context) => const CheckoutScreen(),
-        '/payment': (context) => const PaymentScreen(),
+        // '/checkout': (context) => const CheckoutScreen(),
+        // '/payment': (context) => const PaymentScreen(),
 
       },
       debugShowCheckedModeBanner: false,

@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_bottom_navbar.dart'; 
+import 'dart:convert';
+import '../services/api_service.dart';
+import '../services/cart_service.dart';
+import '../model/cart_item.dart';
 
 class MenuScreen extends StatefulWidget {
   const MenuScreen({Key? key}) : super(key: key);
@@ -23,6 +27,29 @@ class _MenuScreenState extends State<MenuScreen> {
   ];
 
   final List<GlobalKey> _categoryKeys = List.generate(8, (index) => GlobalKey());
+  
+  late Future<Map<String, List<dynamic>>> _menuFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _menuFuture = _fetchAndGroupMenu();
+  }
+
+  // Fetch from API and group by category_name
+  Future<Map<String, List<dynamic>>> _fetchAndGroupMenu() async {
+    final rawData = await ApiService.fetchMenu();
+    Map<String, List<dynamic>> grouped = {};
+    
+    for (var item in rawData) {
+      String catName = item['category_name'];
+      if (!grouped.containsKey(catName)) {
+        grouped[catName] = [];
+      }
+      grouped[catName]!.add(item);
+    }
+    return grouped;
+  }
 
   // Helper to format price
   String _formatPrice(int price) {
@@ -34,7 +61,7 @@ class _MenuScreenState extends State<MenuScreen> {
   }
 
   // Trigger the popup
-  void _showItemDetails(BuildContext context, String name, String description, int basePrice) {
+  void _showItemDetails(BuildContext context, int id, String name, String description, int basePrice) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true, // Allows us to set a custom height 
@@ -45,6 +72,7 @@ class _MenuScreenState extends State<MenuScreen> {
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
           child: ItemDetailsBottomSheet(
+            menuId: id,
             itemName: name,
             itemDescription: description,
             basePrice: basePrice,
@@ -189,96 +217,64 @@ class _MenuScreenState extends State<MenuScreen> {
   }
 
   Widget _buildMainContent() {
-    return Stack(
-      children: [
-        SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(16, 80, 20, 60), 
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildCategorySection(
-                key: _categoryKeys[0],
-                title: 'Special Bundle',
-                items: [
-                  _buildItemCard(name: 'Bundle 1', description: '3 Iced Coffees', price: 90000),
-                  _buildItemCard(name: 'Bundle 2', description: 'Coffee + Sandwich', price: 55000),
-                ],
+    return FutureBuilder<Map<String, List<dynamic>>>(
+      future: _menuFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator(color: Color(0xFF8C9862)));
+        }
+        if (snapshot.hasError || !snapshot.hasData) {
+          return const Center(child: Text('Failed to load menu'));
+        }
+
+        final groupedMenu = snapshot.data!;
+
+        return Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(16, 80, 20, 60), 
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: _categories.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  String catName = entry.value;
+                  List<dynamic> itemsInCat = groupedMenu[catName] ?? [];
+
+                  // Only render the category section if it has items in the DB
+                  if (itemsInCat.isEmpty) return const SizedBox.shrink();
+
+                  return _buildCategorySection(
+                    key: _categoryKeys[index],
+                    title: catName,
+                    items: itemsInCat.map((item) => _buildItemCard(
+                      id: item['menu_id'], // Pass the DB ID
+                      name: item['item_name'], 
+                      description: item['description'] ?? '', 
+                      price: int.parse(item['price'].toString().split('.')[0]),
+                    )).toList(),
+                  );
+                }).toList(),
               ),
-              _buildCategorySection(
-                key: _categoryKeys[1],
-                title: 'Latte Series',
-                items: [
-                  _buildItemCard(name: 'Latte', description: 'Classic Espresso Milk', price: 21000),
-                  _buildItemCard(name: 'Aren Latte', description: 'Palm Sugar Milk', price: 23000),
-                ],
-              ),
-              _buildCategorySection(
-                key: _categoryKeys[2],
-                title: 'Classics Coffee',
-                items: [
-                  _buildItemCard(name: 'Macchiato', description: 'Caramel Drizzle', price: 23000),
-                  _buildItemCard(name: 'Americano', description: 'Bold & Black', price: 18000),
-                ],
-              ),
-              _buildCategorySection(
-                key: _categoryKeys[3],
-                title: 'Non - Coffee',
-                items: [
-                  _buildItemCard(name: 'Matcha Latte', description: 'Premium Green Tea', price: 25000),
-                  _buildItemCard(name: 'Taro Latte', description: 'Sweet Purple Yam', price: 24000),
-                ],
-              ),
-              _buildCategorySection(
-                key: _categoryKeys[4],
-                title: 'Bundling Duo',
-                items: [
-                  _buildItemCard(name: 'Duo Aren', description: '2x Aren Latte', price: 40000),
-                  _buildItemCard(name: 'Duo Classics', description: '2x Americano', price: 32000),
-                ],
-              ),
-              _buildCategorySection(
-                key: _categoryKeys[5],
-                title: 'Bundling Trio',
-                items: [
-                  _buildItemCard(name: 'Trio Mix', description: '3 Random Drinks', price: 65000),
-                ],
-              ),
-              _buildCategorySection(
-                key: _categoryKeys[6],
-                title: 'Pastry & Bakery',
-                items: [
-                  _buildItemCard(name: 'Butter Croissant', description: 'Flaky & Warm', price: 15000),
-                  _buildItemCard(name: 'Choco Muffin', description: 'Double Chocolate', price: 18000),
-                ],
-              ),
-              _buildCategorySection(
-                key: _categoryKeys[7],
-                title: 'Skewers',
-                items: [
-                  _buildItemCard(name: 'Chicken Skewer', description: 'Grilled to perfection', price: 20000),
-                  _buildItemCard(name: 'Beef Skewer', description: 'Premium cut', price: 25000),
-                ],
-              ),
-            ],
-          ),
-        ),
-        
-        Positioned(
-          top: 16,
-          right: 20,
-          child: Container(
-            width: 50,
-            height: 50,
-            decoration: const BoxDecoration(color: Color(0xFF8C9862), shape: BoxShape.circle),
-            child: IconButton(
-              icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 24),
-              onPressed: () {
-                Navigator.pushNamed(context, '/cart');
-              },
             ),
-          ),
-        ),
-      ],
+            
+            Positioned(
+              top: 16,
+              right: 20,
+              child: Container(
+                width: 50,
+                height: 50,
+                decoration: const BoxDecoration(color: Color(0xFF8C9862), shape: BoxShape.circle),
+                child: IconButton(
+                  icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 24),
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/cart');
+                  },
+                ),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -303,6 +299,7 @@ class _MenuScreenState extends State<MenuScreen> {
   }
 
   Widget _buildItemCard({
+    required int id,
     required String name,
     required String description,
     required int price,
@@ -338,7 +335,7 @@ class _MenuScreenState extends State<MenuScreen> {
               ),
             ),
             GestureDetector(
-              onTap: () => _showItemDetails(context, name, description, price),
+              onTap: () => _showItemDetails(context, id, name, description, price),
               behavior: HitTestBehavior.opaque,
               child: Container(
                 alignment: Alignment.topRight,
@@ -386,12 +383,14 @@ class _MenuScreenState extends State<MenuScreen> {
 // Detailed Item Bottom Sheet (3/4 Screen Size)
 // ------------------------------------------------------------------------
 class ItemDetailsBottomSheet extends StatefulWidget {
+  final int menuId;
   final String itemName;
   final String itemDescription;
   final int basePrice;
 
   const ItemDetailsBottomSheet({
     Key? key,
+    required this.menuId,
     required this.itemName,
     required this.itemDescription,
     required this.basePrice,
@@ -532,9 +531,20 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () {
+                            CartService().addItem(CartItem(
+                              menuId: widget.menuId,
+                              name: widget.itemName,
+                              description: widget.itemDescription,
+                              price: widget.basePrice,
+                              quantity: _quantity,
+                            ));
+
                             Navigator.pop(context); 
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Added to Cart!')),
+                              const SnackBar(
+                                content: Text('Added to Cart!'), 
+                                backgroundColor: Color(0xFF8C9862)
+                              ),
                             );
                           },
                           style: OutlinedButton.styleFrom(
@@ -552,6 +562,14 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () {
+                            CartService().addItem(CartItem(
+                              menuId: widget.menuId,
+                              name: widget.itemName,
+                              description: widget.itemDescription,
+                              price: widget.basePrice,
+                              quantity: _quantity,
+                            ));
+
                             Navigator.pop(context);
                             Navigator.pushNamed(context, '/cart'); // Direct routing to cart screen
                           },

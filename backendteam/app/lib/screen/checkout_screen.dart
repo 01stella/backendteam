@@ -1,25 +1,38 @@
 import 'package:flutter/material.dart';
+import '../model/cart_item.dart';
 import '../services/api_service.dart';
+import 'payment_screen.dart';
 
 class CheckoutScreen extends StatelessWidget {
-  const CheckoutScreen({Key? key}) : super(key: key);
+  final List<CartItem> cartItems;
+
+  const CheckoutScreen({Key? key, required this.cartItems}) : super(key: key);
+
+  // --- Calculations ---
+  int get subtotal => cartItems.fold(0, (sum, item) => sum + (item.price * item.quantity));
+  double get pb1 => subtotal * 0.10;
+  double get vat => subtotal * 0.11;
+  double get total => subtotal + pb1 + vat;
+
+  // Helper to format prices
+  String _formatPrice(num price) {
+    return 'Rp ${price.toInt()}';
+  }
 
   @override
   Widget build(BuildContext context) {
     const Color bgColor = Color(0xFFF3EFE6);
     const Color goldColor = Color(0xFFC3A358);
-    const Color thickDividerColor = Color(0xFFE8E3D7); // Slightly darker beige for section breaks
+    const Color thickDividerColor = Color(0xFFE8E3D7); 
 
     return Scaffold(
       backgroundColor: bgColor,
       body: SafeArea(
         child: Column(
           children: [
-            // 1. Header
             _buildHeader(goldColor),
             Container(height: 1.5, color: goldColor.withOpacity(0.5)),
             
-            // 2. Scrollable Checkout Content
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
@@ -38,7 +51,7 @@ class CheckoutScreen extends StatelessWidget {
                     Container(height: 8, color: thickDividerColor),
                     
                     _buildPaymentMethodsAndContacts(),
-                    const SizedBox(height: 40), // Bottom padding before the fixed button
+                    const SizedBox(height: 40), 
                   ],
                 ),
               ),
@@ -46,7 +59,6 @@ class CheckoutScreen extends StatelessWidget {
           ],
         ),
       ),
-      // 3. Fixed Bottom Pay Button
       bottomNavigationBar: _buildBottomPayButton(context),
     );
   }
@@ -66,26 +78,11 @@ class CheckoutScreen extends StatelessWidget {
               border: Border.all(color: goldColor, width: 1.5),
             ),
             child: Center(
-              child: Text(
-                'L',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: goldColor,
-                  fontWeight: FontWeight.w300,
-                ),
-              ),
+              child: Text('L', style: TextStyle(fontSize: 20, color: goldColor, fontWeight: FontWeight.w300)),
             ),
           ),
           const SizedBox(width: 16),
-          const Text(
-            'CHECKOUT',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              letterSpacing: 1.5,
-              color: Color(0xFF1E1E1E),
-            ),
-          ),
+          const Text('CHECKOUT', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: Color(0xFF1E1E1E))),
         ],
       ),
     );
@@ -93,31 +90,15 @@ class CheckoutScreen extends StatelessWidget {
 
   Widget _buildPickUpSection() {
     const Color activeGreen = Color(0xFF8C9862);
-    
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // PICK UP Title with green underline
-          const Text(
-            'PICK UP',
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: activeGreen,
-              letterSpacing: 1.2,
-            ),
-          ),
+          const Text('PICK UP', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: activeGreen, letterSpacing: 1.2)),
           const SizedBox(height: 4),
-          Container(
-            height: 2,
-            width: double.infinity,
-            color: activeGreen,
-          ),
+          Container(height: 2, width: double.infinity, color: activeGreen),
           const SizedBox(height: 20),
-          
-          // Details
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -125,34 +106,17 @@ class CheckoutScreen extends StatelessWidget {
               const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'Pick up time',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E)),
-                  ),
+                  Text('Pick up time', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E))),
                   SizedBox(height: 4),
-                  Text(
-                    'UNIJI Building, Lobby Floor',
-                    style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1E1E1E)),
-                  ),
+                  Text('UNIJI Building, Lobby Floor', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1E1E1E))),
                 ],
               ),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  const Text(
-                    'Select Time',
-                    style: TextStyle(
-                      fontSize: 12, 
-                      fontWeight: FontWeight.w600, 
-                      color: Color(0xFF1E1E1E),
-                      decoration: TextDecoration.underline,
-                    ),
-                  ),
+                  const Text('Select Time', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1E1E1E), decoration: TextDecoration.underline)),
                   const SizedBox(height: 4),
-                  Text(
-                    '1.4km away from you',
-                    style: TextStyle(fontSize: 12, color: Colors.black.withOpacity(0.5)),
-                  ),
+                  Text('1.4km away from you', style: TextStyle(fontSize: 12, color: Colors.black54)),
                 ],
               ),
             ],
@@ -170,22 +134,19 @@ class CheckoutScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Text(
-                'ORDER SUMMARY',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
-                  color: Color(0xFF1E1E1E),
-                ),
-              ),
+              const Text('ORDER SUMMARY', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.2, color: Color(0xFF1E1E1E))),
               const SizedBox(width: 8),
               Icon(Icons.chevron_right, size: 16, color: Colors.black.withOpacity(0.6)),
             ],
           ),
           const SizedBox(height: 16),
-          _buildOrderItemCard(name: 'Lemon Tea', description: 'Description', price: 'Rp 10,000', qty: '1x'),
-          _buildOrderItemCard(name: 'Croissant', description: 'Description', price: 'Rp 15,000', qty: '1x'),
+          // Dynamically generate the list of items from the cart!
+          ...cartItems.map((item) => _buildOrderItemCard(
+                name: item.name,
+                description: item.description,
+                price: _formatPrice(item.price * item.quantity),
+                qty: '${item.quantity}x',
+              )).toList(),
         ],
       ),
     );
@@ -193,69 +154,41 @@ class CheckoutScreen extends StatelessWidget {
 
   Widget _buildOrderItemCard({required String name, required String description, required String price, required String qty}) {
     const Color activeGreen = Color(0xFF8C9862);
-
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
         color: const Color(0xFFFDFDFB),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(color: activeGreen.withOpacity(0.2), width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 4))],
       ),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            // Item Image (Placeholder)
             Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: Colors.grey.shade200,
-                borderRadius: BorderRadius.circular(8),
-              ),
+              width: 50, height: 50,
+              decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(8)),
               child: Icon(Icons.fastfood, color: Colors.grey.shade400, size: 24),
             ),
             const SizedBox(width: 16),
-            
-            // Details
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    name,
-                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E)),
-                  ),
+                  Text(name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E))),
                   const SizedBox(height: 2),
-                  Text(
-                    description,
-                    style: TextStyle(fontSize: 11, color: Colors.black.withOpacity(0.5)),
-                  ),
+                  Text(description, style: TextStyle(fontSize: 11, color: Colors.black.withOpacity(0.5))),
                 ],
               ),
             ),
-            
-            // Price & Qty
             Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
-                Text(
-                  price,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E)),
-                ),
+                Text(price, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E))),
                 const SizedBox(height: 4),
-                Text(
-                  qty,
-                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black.withOpacity(0.6)),
-                ),
+                Text(qty, style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Colors.black.withOpacity(0.6))),
               ],
             ),
           ],
@@ -270,14 +203,8 @@ class CheckoutScreen extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            'Stamp Collection',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E)),
-          ),
-          Text(
-            'Will get 2 Stamps',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: const Color(0xFF8C9862)), // Olive Green
-          ),
+          const Text('Stamp Collection', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E))),
+          const Text('Will get 2 Stamps', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF8C9862))), 
         ],
       ),
     );
@@ -291,37 +218,24 @@ class CheckoutScreen extends StatelessWidget {
         children: [
           Row(
             children: [
-              const Text(
-                'Payment Details',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E)),
-              ),
+              const Text('Payment Details', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E))),
               const SizedBox(width: 4),
               Icon(Icons.info_outline, size: 14, color: Colors.black.withOpacity(0.5)),
             ],
           ),
           const SizedBox(height: 16),
           
-          _buildDetailRow('Total Discount', '-Rp 15.000', isBold: true),
-          Padding(
-            padding: const EdgeInsets.only(bottom: 8.0),
-            child: _buildDetailRow('Voucher Applied', '-Rp 15.000', isGrey: true),
-          ),
-          _buildDetailRow('PB1 10.00%', 'Rp 12.000', isBold: true),
-          _buildDetailRow('VAT 11%', 'Rp. 10.000', isBold: true),
+          _buildDetailRow('Subtotal', _formatPrice(subtotal), isBold: true),
+          _buildDetailRow('PB1 10.00%', _formatPrice(pb1), isBold: true),
+          _buildDetailRow('VAT 11%', _formatPrice(vat), isBold: true),
           
           const SizedBox(height: 12),
           Row(
             mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              const Text(
-                'Total :',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E1E1E)),
-              ),
+              const Text('Total :', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E1E1E))),
               const SizedBox(width: 16),
-              const Text(
-                'Rp 120.000',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E)),
-              ),
+              Text(_formatPrice(total), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E))),
             ],
           ),
         ],
@@ -332,15 +246,13 @@ class CheckoutScreen extends StatelessWidget {
   Widget _buildDetailRow(String label, String value, {bool isBold = false, bool isGrey = false}) {
     final color = isGrey ? Colors.black.withOpacity(0.5) : const Color(0xFF1E1E1E);
     final weight = isBold ? FontWeight.bold : FontWeight.normal;
-    final fontSize = isGrey ? 10.0 : 12.0;
-
     return Padding(
       padding: const EdgeInsets.only(bottom: 8.0),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: TextStyle(fontSize: fontSize, fontWeight: weight, color: color)),
-          Text(value, style: TextStyle(fontSize: fontSize, fontWeight: weight, color: color)),
+          Text(label, style: TextStyle(fontSize: 12.0, fontWeight: weight, color: color)),
+          Text(value, style: TextStyle(fontSize: 12.0, fontWeight: weight, color: color)),
         ],
       ),
     );
@@ -352,24 +264,10 @@ class CheckoutScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Payment Methods
-          const Text(
-            'Payment Methods',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E)),
-          ),
+          const Text('Payment Methods', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E))),
           const SizedBox(height: 4),
-          const Text(
-            'Select Payment Method',
-            style: TextStyle(
-              fontSize: 12, 
-              fontWeight: FontWeight.w600, 
-              color: Color(0xFF1E1E1E),
-              decoration: TextDecoration.underline,
-            ),
-          ),
+          const Text('Select Payment Method', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1E1E1E), decoration: TextDecoration.underline)),
           const SizedBox(height: 32),
-          
-          // Contacts
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -377,33 +275,20 @@ class CheckoutScreen extends StatelessWidget {
                 text: const TextSpan(
                   text: 'CONTACTS',
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E1E1E)),
-                  children: [
-                    TextSpan(text: '*', style: TextStyle(color: Color(0xFFD7263D))), // Red Asterisk
-                  ],
+                  children: [TextSpan(text: '*', style: TextStyle(color: Color(0xFFD7263D)))], 
                 ),
               ),
-              const Text(
-                '+62 8123456789',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E1E1E)),
-              ),
+              const Text('+62 8123456789', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E1E1E))),
             ],
           ),
           const SizedBox(height: 24),
-          
-          // Notes
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                'Notes',
-                style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E1E1E)),
-              ),
+              const Text('Notes', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E1E1E))),
               Row(
                 children: [
-                  Text(
-                    '. . .',
-                    style: TextStyle(fontSize: 16, color: Colors.black.withOpacity(0.5), letterSpacing: 2),
-                  ),
+                  Text('. . .', style: TextStyle(fontSize: 16, color: Colors.black.withOpacity(0.5), letterSpacing: 2)),
                   const SizedBox(width: 8),
                   Icon(Icons.edit_square, size: 20, color: Colors.black.withOpacity(0.7)),
                 ],
@@ -415,66 +300,70 @@ class CheckoutScreen extends StatelessWidget {
     );
   }
 
-Widget _buildBottomPayButton(BuildContext context) {
-  const Color activeGreen = Color(0xFF8C9862);
+ Widget _buildBottomPayButton(BuildContext context) {
+    const Color activeGreen = Color(0xFF8C9862);
 
-  return Container(
-    color: const Color(0xFFF3EFE6),
-    padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
-    child: SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: () async {
-          // 1. Show a loading indicator
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => const Center(child: CircularProgressIndicator(color: activeGreen)),
-          );
+    return Container(
+      color: const Color(0xFFF3EFE6), 
+      padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
+      child: Column(
+        mainAxisSize: MainAxisSize.min, // Prevents the column from expanding infinitely
+        children: [
+          // 1. PAY BUTTON
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () async {
+                final itemsPayload = cartItems.map((i) => {"menu_id": i.menuId, "quantity": i.quantity}).toList();
+                final result = await ApiService.createOrder(customerId: 1, items: itemsPayload);
 
-          print('🚀 Firing test request to backend...');
+                if (result != null && result['success'] == true) {
+                  if (!context.mounted) return; 
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => PaymentScreen(totalAmount: total.toInt())),
+                  );
+                } else {
+                   if (!context.mounted) return;
+                   ScaffoldMessenger.of(context).showSnackBar(
+                     const SnackBar(content: Text('Order failed. Please check backend connection.')),
+                   );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: activeGreen,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(vertical: 18),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: Text(
+                'PAY ${_formatPrice(total)}', 
+                style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.0),
+              ),
+            ),
+          ),
+          const SizedBox(height: 12),
           
-          // 2. Call your API Service
-          final result = await ApiService.createOrder(
-            customerId: 1, // This is hardcoded for testing
-            items: [
-              {"menu_id": 101, "quantity": 2},
-              {"menu_id": 204, "quantity": 1}
-            ],
-          );
-
-          // 3. Close the loading dialog
-          if (context.mounted) Navigator.pop(context);
-
-          // 4. Handle response
-          if (result != null) {
-            print('✅ SUCCESS! Backend says: $result');
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Order placed successfully!')),
-            );
-            
-            // 👇 ADD THIS LINE TO NAVIGATE TO THE PAYMENT SCREEN 👇
-            Navigator.pushNamed(context, '/payment');
-            
-          } else {
-            print('❌ FAILED!');
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Failed to connect to backend.')),
-            );
-          }
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: activeGreen,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(vertical: 18),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-        ),
-        child: const Text(
-          'PAY Rp 120.000',
-          style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold),
-        ),
+          // 2. CANCEL BUTTON
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () {
+                Navigator.pop(context); // Goes back to CartScreen
+              },
+              style: OutlinedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                side: const BorderSide(color: Color(0xFF6E562A), width: 1.5), 
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              child: const Text(
+                'CANCEL', 
+                style: TextStyle(color: Color(0xFF4A3C1D), fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.2)
+              ),
+            ),
+          ),
+        ],
       ),
-    ),
-  );
-}
+    );
+  }
 }
