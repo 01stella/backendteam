@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:backendteam/screen/register.dart';
-<<<<<<< HEAD
-import 'screens/history_screen.dart';
-=======
 import 'screen/history_screen.dart';
->>>>>>> b89c6fbb65ddc4edbd8d87767d3952adedfbbd6c
+import 'screen/menu_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -25,6 +22,7 @@ class MyApp extends StatelessWidget {
       routes: {
         '/history': (context) => const HistoryScreen(),
         '/register': (context) => RegisterScreen(),
+        '/menu': (context) => const MenuScreen(),
       },
       debugShowCheckedModeBanner: false,
     );

@@ -1,66 +1,58 @@
 import 'package:flutter/material.dart';
 
+// --- 1. The Bottom Navigation Bar ---
 class CustomBottomNavBar extends StatelessWidget {
   final int selectedIndex;
+
   const CustomBottomNavBar({Key? key, required this.selectedIndex}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        border: Border(top: BorderSide(color: Color(0xFFD9CBA3), width: 2)),
+    return BottomAppBar(
+      color: Colors.white,
+      elevation: 10,
+      notchMargin: 0,
+      padding: EdgeInsets.zero,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavButton(context, Icons.home_outlined, 'Home', 0, '/register'), 
+            _buildNavButton(context, Icons.coffee, 'Menu', 1, '/menu'), 
+            const SizedBox(width: 48), // The empty gap for the floating QR Button
+            _buildNavButton(context, Icons.receipt_long_outlined, 'History', 2, '/history'),
+            _buildNavButton(context, Icons.person_outline, 'Profile', 3, '/register'), 
+          ],
+        ),
       ),
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
+    );
+  }
+
+  Widget _buildNavButton(BuildContext context, IconData icon, String label, int index, String route) {
+    bool isSelected = selectedIndex == index;
+    // Uses the premium Olive Green color from the Menu screen
+    final activeColor = const Color(0xFF8C9862); 
+    final inactiveColor = const Color(0xFFB0B0B0);
+
+    return GestureDetector(
+      onTap: () {
+        if (!isSelected) {
+          Navigator.pushReplacementNamed(context, route);
+        }
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          _NavBarIcon(
-            icon: Icons.home,
-            label: 'Home',
-            selected: selectedIndex == 0,
-            onTap: () {},
-          ),
-          _NavBarIcon(
-            icon: Icons.menu_book,
-            label: 'Menu',
-            selected: selectedIndex == 1,
-            onTap: () {},
-          ),
-          Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFFD9CBA3),
-              borderRadius: BorderRadius.circular(32),
-            ),
-            padding: const EdgeInsets.all(8),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                Icon(Icons.qr_code_scanner, color: Color(0xFF1A1A1A)),
-                SizedBox(height: 2),
-                Text('SCAN QR', style: TextStyle(fontSize: 10, color: Color(0xFF1A1A1A))),
-              ],
-            ),
-          ),
-          _NavBarIcon(
-            icon: Icons.history,
-            label: 'History',
-            selected: selectedIndex == 2,
-            onTap: () {
-              if (selectedIndex != 2) {
-                Navigator.pushReplacementNamed(context, '/history');
-              }
-            },
-          ),
-          _NavBarIcon(
-            icon: Icons.person,
-            label: 'Profile',
-            selected: selectedIndex == 3,
-            onTap: () {
-              if (selectedIndex != 3) {
-                Navigator.pushReplacementNamed(context, '/register');
-              }
-            },
+          Icon(icon, color: isSelected ? activeColor : inactiveColor),
+          const SizedBox(height: 2),
+          Text(
+            label, 
+            style: TextStyle(
+              fontSize: 10, 
+              color: isSelected ? activeColor : inactiveColor
+            )
           ),
         ],
       ),
@@ -68,23 +60,36 @@ class CustomBottomNavBar extends StatelessWidget {
   }
 }
 
-class _NavBarIcon extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final bool selected;
-  final VoidCallback onTap;
-  const _NavBarIcon({required this.icon, required this.label, required this.selected, required this.onTap});
+// --- 2. The Floating Scan QR Button ---
+class ScanQRButton extends StatelessWidget {
+  final Color bgColor;
+
+  const ScanQRButton({Key? key, required this.bgColor}) : super(key: key);
+
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: selected ? Color(0xFFB98068) : Color(0xFFB0B0B0)),
-          const SizedBox(height: 2),
-          Text(label, style: TextStyle(fontSize: 10, color: selected ? Color(0xFFB98068) : Color(0xFFB0B0B0))),
-        ],
+    return Container(
+      height: 64,
+      width: 64,
+      margin: const EdgeInsets.only(top: 24), 
+      decoration: BoxDecoration(
+        color: const Color(0xFF8C9862), 
+        shape: BoxShape.circle,
+        // The border perfectly matches the background of the screen it's on
+        border: Border.all(color: bgColor, width: 4), 
+      ),
+      child: InkWell(
+        onTap: () {
+          print("Scan QR Clicked");
+        },
+        child: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.qr_code_scanner, color: Colors.white, size: 24),
+            SizedBox(height: 2),
+            Text('SCAN QR', style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
+          ],
+        ),
       ),
     );
   }

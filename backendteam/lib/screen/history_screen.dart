@@ -1,35 +1,21 @@
 import 'package:flutter/material.dart';
 import '../widgets/historycard.dart';
+import '../widgets/custom_bottom_navbar.dart'; // Make sure this path is correct!
 
 class HistoryScreen extends StatelessWidget {
   const HistoryScreen({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    const bgColor = Color(0xFFF6F6E9);
+    
     return Scaffold(
-      backgroundColor: const Color(0xFFF6F6E9),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavButton(context, Icons.home_outlined, 'Home', 0, false),
-            _buildNavButton(context, Icons.coffee_outlined, 'Order', 1, false),
-            _buildNavButton(context, Icons.receipt_long_outlined, 'History', 2, true),
-            _buildNavButton(context, Icons.person_outline, 'Profile', 3, false),
-          ],
-        ),
-      ),
+      backgroundColor: bgColor,
+      // --- MENU-STYLE NAVBAR & FLOATING QR BUTTON ---
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: _buildScanQRButton(bgColor),
+      bottomNavigationBar: const CustomBottomNavBar(selectedIndex: 2), // 2 for History
+      // ----------------------------------------------
       body: SafeArea(
         child: Column(
           children: [
@@ -187,21 +173,29 @@ class HistoryScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildNavButton(BuildContext context, IconData icon, String label, int index, bool isSelected) {
-    return GestureDetector(
-      onTap: () {
-        if (index == 3) { // Changed to Index 3 (Profile)
-          Navigator.pushReplacementNamed(context, '/register');
-        }
-      },
-      behavior: HitTestBehavior.opaque,
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, color: isSelected ? const Color(0xFFB98068) : const Color(0xFFB0B0B0)),
-          const SizedBox(height: 2),
-          Text(label, style: TextStyle(fontSize: 10, color: isSelected ? const Color(0xFFB98068) : const Color(0xFFB0B0B0))),
-        ],
+  // --- Helper for the Floating SCAN QR Button ---
+  Widget _buildScanQRButton(Color bgColor) {
+    return Container(
+      height: 64,
+      width: 64,
+      margin: const EdgeInsets.only(top: 24), 
+      decoration: BoxDecoration(
+        color: const Color(0xFF8C9862), 
+        shape: BoxShape.circle,
+        border: Border.all(color: bgColor, width: 4), 
+      ),
+      child: InkWell(
+        onTap: () {
+          print("Scan QR Clicked");
+        },
+        child: const Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.qr_code_scanner, color: Colors.white, size: 24),
+            SizedBox(height: 2),
+            Text('SCAN QR', style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
+          ],
+        ),
       ),
     );
   }
