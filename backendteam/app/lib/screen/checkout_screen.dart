@@ -414,7 +414,7 @@ class CheckoutScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBottomPayButton(BuildContext context) {
+Widget _buildBottomPayButton(BuildContext context) {
     const Color activeGreen = Color(0xFF8C9862);
 
     return Container(
@@ -423,9 +423,25 @@ class CheckoutScreen extends StatelessWidget {
       child: SizedBox(
         width: double.infinity,
         child: ElevatedButton(
-          onPressed: () {
-            print('Processing Payment...');
+          onPressed: () async {
+            print('Firing test request to backend...');
+            
+            // Faking some cart data to test the format
+            final result = await ApiService.createOrder(
+              customerId: 1,
+              items: [
+                {"menu_id": 101, "quantity": 2},
+                {"menu_id": 204, "quantity": 1}
+              ],
+            );
+
+            if (result != null) {
+              print('SUCCESS! Backend says: $result');
+            } else {
+              print('FAILED! (This is expected right now)');
+            }
           },
+          
           style: ElevatedButton.styleFrom(
             backgroundColor: activeGreen,
             elevation: 0,
@@ -446,5 +462,5 @@ class CheckoutScreen extends StatelessWidget {
         ),
       ),
     );
-  }
+}
 }
