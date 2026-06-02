@@ -1,19 +1,61 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 class RegisterScreen extends StatelessWidget {
   const RegisterScreen({Key? key}) : super(key: key);
+
+  void _showWelcomePopup(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true, 
+      backgroundColor: Colors.transparent, 
+      isDismissible: true, 
+      enableDrag: true,
+      builder: (BuildContext context) {
+        return Padding(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: const WelcomeBottomSheet(), 
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF3EFE6),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, -5),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _buildNavButton(context, Icons.home_outlined, 'Home', 0, false), // Changed to false
+            _buildNavButton(context, Icons.coffee_outlined, 'Order', 1, false),
+            _buildNavButton(context, Icons.receipt_long_outlined, 'History', 2, false),
+            _buildNavButton(context, Icons.person_outline, 'Profile', 3, true), // Changed to true!
+          ],
+        ),
+      ),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(),
+              _buildHeader(context), 
               const SizedBox(height: 30),
               _buildCustomerCard(),
               const SizedBox(height: 30),
@@ -34,7 +76,7 @@ class RegisterScreen extends StatelessWidget {
                 '2. What are your opening hours?',
                 'We\'re open every day from 8:00 AM to 10:00 PM. Opening hours may change during holidays or special events.',
               ),
-              const SizedBox(height: 40), // Bottom padding
+              const SizedBox(height: 40), 
             ],
           ),
         ),
@@ -42,42 +84,45 @@ class RegisterScreen extends StatelessWidget {
     );
   }
 
-  // --- Widget Builders ---
-
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
     final textColor = const Color(0xFF1E1E1E);
     final goldDark = const Color(0xFFC3A358);
-    return Row(
-      children: [
-        Container(
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: goldDark, width: 1.5),
-          ),
-          child: Center(
-            child: Text(
-              'L',
-              style: TextStyle(
-                fontSize: 24,
-                color: goldDark,
-                fontWeight: FontWeight.w300,
+    
+    return GestureDetector(
+      onTap: () => _showWelcomePopup(context),
+      behavior: HitTestBehavior.opaque,
+      child: Row(
+        children: [
+          Container(
+            width: 50,
+            height: 50,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(color: goldDark, width: 1.5),
+            ),
+            child: Center(
+              child: Text(
+                'L',
+                style: TextStyle(
+                  fontSize: 24,
+                  color: goldDark,
+                  fontWeight: FontWeight.w300,
+                ),
               ),
             ),
           ),
-        ),
-        const SizedBox(width: 12),
-        Text(
-          'LOGIN',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
-            color: textColor,
+          const SizedBox(width: 12),
+          Text(
+            'LOGIN',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+              color: textColor,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
@@ -98,7 +143,6 @@ class RegisterScreen extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Top Gold Section
           Container(
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -151,7 +195,6 @@ class RegisterScreen extends StatelessWidget {
               ],
             ),
           ),
-          // Bottom Light Beige Section
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
@@ -265,8 +308,6 @@ class RegisterScreen extends StatelessWidget {
   Widget _buildLoyaltyStamps() {
     final cardGreen = const Color(0xFFE1E2C9);
     final textColor = const Color(0xFF1E1E1E);
-    final stampFilled = const Color(0xFF9E9E82);
-    final stampEmpty = const Color(0xFFEBEBD3);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -307,7 +348,6 @@ class RegisterScreen extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          // Stamps Grid
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: List.generate(5, (index) => _buildStamp(index < 4)),
@@ -345,10 +385,9 @@ class RegisterScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Question Header
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: const Color(0xFFE2C991), // Muted gold for FAQ headers
+            color: const Color(0xFFE2C991), 
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -366,10 +405,9 @@ class RegisterScreen extends StatelessWidget {
               ],
             ),
           ),
-          // Answer Body
           Container(
             padding: const EdgeInsets.all(16),
-            color: const Color(0xFFE4DFCC), // Beige for FAQ body
+            color: const Color(0xFFE4DFCC), 
             child: Text(
               answer,
               style: TextStyle(
@@ -377,6 +415,324 @@ class RegisterScreen extends StatelessWidget {
                 height: 1.4,
                 color: textColor.withOpacity(0.8),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavButton(BuildContext context, IconData icon, String label, int index, bool isSelected) {
+    return GestureDetector(
+      onTap: () {
+        if (index == 2) {
+          Navigator.pushReplacementNamed(context, '/history');
+        }
+      },
+      behavior: HitTestBehavior.opaque,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, color: isSelected ? const Color(0xFFB98068) : const Color(0xFFB0B0B0)),
+          const SizedBox(height: 2),
+          Text(label, style: TextStyle(fontSize: 10, color: isSelected ? const Color(0xFFB98068) : const Color(0xFFB0B0B0))),
+        ],
+      ),
+    );
+  }
+}
+
+// ------------------------------------------------------------------------
+// The Modal Bottom Sheet
+// ------------------------------------------------------------------------
+class WelcomeBottomSheet extends StatefulWidget {
+  const WelcomeBottomSheet({super.key});
+
+  @override
+  State<WelcomeBottomSheet> createState() => _WelcomeBottomSheetState();
+}
+
+class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
+  final TextEditingController _phoneController = TextEditingController();
+  final TextEditingController _referralController = TextEditingController();
+  bool _isMarketingChecked = false;
+  bool _isTermsChecked = false;
+
+  static const Color primaryPopupColor = Color(0xFFE6E1D1);
+  static const Color customGreen = Color(0xFFBFC67C);
+  static const Color darkTextGrey = Color(0xFF8A8574);
+  static const Color lightGrey = Color(0xFFDFDAD1);
+  static const Color hintGrey = Color(0xFFAFAFA0); 
+  static const Color buttonColor = Color(0xFFCDC9B6);
+  static const Color buttonTextGrey = Color(0xFF8A8574);
+
+  final TextStyle headerTextStyle = const TextStyle(
+    color: Colors.black, 
+    fontSize: 18, 
+    fontWeight: FontWeight.bold,
+    letterSpacing: 1.0,
+  );
+
+  final TextStyle inputTextStyle = const TextStyle(
+    color: Colors.black,
+    fontSize: 16, 
+  );
+
+  final TextStyle hintTextStyle = const TextStyle(
+    color: hintGrey,
+    fontSize: 16, 
+    fontStyle: FontStyle.normal, 
+  );
+
+  final TextStyle boldConsentTextStyle = const TextStyle(
+    color: Colors.black,
+    fontSize: 11, 
+    fontWeight: FontWeight.bold,
+  );
+
+  final TextStyle consentTextStyle = const TextStyle(
+    color: darkTextGrey,
+    fontSize: 10, 
+    height: 1.2,
+  );
+
+  @override
+  void dispose() {
+    _phoneController.dispose();
+    _referralController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(
+        color: primaryPopupColor,
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20.0), 
+          topRight: Radius.circular(20.0),
+        ),
+      ),
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(32, 28, 32, 32), 
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('WELCOME', style: headerTextStyle),
+                  const SizedBox(height: 8), 
+                  Container(
+                    width: 40, 
+                    height: 1.5,
+                    color: customGreen,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 36), 
+
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Column(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.only(bottom: 4, right: 8),
+                        decoration: const BoxDecoration(
+                          border: Border(
+                            bottom: BorderSide(color: lightGrey, width: 1),
+                          ),
+                        ),
+                        child: Text('+62', style: inputTextStyle),
+                      ),
+                      const SizedBox(height: 7), 
+                    ],
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _phoneController,
+                      keyboardType: TextInputType.phone,
+                      cursorColor: Colors.black,
+                      style: inputTextStyle,
+                      decoration: InputDecoration(
+                        hintText: 'Phone Number...',
+                        hintStyle: hintTextStyle,
+                        isDense: true,
+                        contentPadding: const EdgeInsets.only(bottom: 8, top: 4), 
+                        enabledBorder: const UnderlineInputBorder(
+                          borderSide: BorderSide(color: lightGrey),
+                        ),
+                        focusedBorder: const UnderlineInputBorder(
+                          borderSide: BorderSide(color: Colors.black, width: 1.2),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24), 
+
+              TextField(
+                controller: _referralController,
+                cursorColor: Colors.black,
+                style: inputTextStyle,
+                decoration: InputDecoration(
+                  hintText: 'Referral Code (Optional)',
+                  hintStyle: hintTextStyle,
+                  isDense: true,
+                  contentPadding: const EdgeInsets.only(bottom: 8, top: 4),
+                  enabledBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: lightGrey),
+                  ),
+                  focusedBorder: const UnderlineInputBorder(
+                    borderSide: BorderSide(color: Colors.black, width: 1.2),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    print('Continue pressed.');
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: buttonColor,
+                    elevation: 0,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2.0)), 
+                    padding: const EdgeInsets.symmetric(vertical: 14), 
+                  ),
+                  child: const Text(
+                    'CONTINUE',
+                    style: TextStyle(
+                      color: buttonTextGrey,
+                      fontSize: 14, 
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.5, 
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 32),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _socialButton(FontAwesomeIcons.solidEnvelope),
+                  const SizedBox(width: 16),
+                  _socialButton(FontAwesomeIcons.apple),
+                  const SizedBox(width: 16),
+                  _socialButton(FontAwesomeIcons.whatsapp),
+                ],
+              ),
+              const SizedBox(height: 32),
+
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _customConsentCheckbox(
+                    value: _isMarketingChecked,
+                    onChanged: (newValue) {
+                      setState(() {
+                        _isMarketingChecked = newValue!;
+                      });
+                    },
+                    titleText: 'Marketing Communications',
+                    description: const TextSpan(
+                      text: 'I wish to receive marketing communications via WhatsApp, email, text messaging and/ or phonecall.',
+                    ),
+                  ),
+                  const SizedBox(height: 16), 
+                  _customConsentCheckbox(
+                    value: _isTermsChecked,
+                    onChanged: (newValue) {
+                      setState(() {
+                        _isTermsChecked = newValue!;
+                      });
+                    },
+                    titleText: 'Terms and Conditions',
+                    description: TextSpan(
+                      text: 'I confirm I have read and accept the ',
+                      children: <TextSpan>[
+                        TextSpan(
+                          text: 'Terms of Use',
+                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, decoration: TextDecoration.none),
+                          recognizer: TapGestureRecognizer()..onTap = () {},
+                        ),
+                        const TextSpan(text: ' and '),
+                        TextSpan(
+                          text: 'Privacy Policy',
+                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, decoration: TextDecoration.none),
+                          recognizer: TapGestureRecognizer()..onTap = () {},
+                        ),
+                        const TextSpan(text: '.'),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _socialButton(IconData icon) {
+    return Container(
+      width: 40, 
+      height: 40,
+      decoration: const BoxDecoration(
+        color: Color(0xFFDFDAD1), 
+        shape: BoxShape.circle,
+      ),
+      child: Center(
+        child: FaIcon(icon, size: 16, color: darkTextGrey), 
+      ),
+    );
+  }
+
+  Widget _customConsentCheckbox({
+    required bool value,
+    required ValueChanged<bool?> onChanged,
+    required String titleText,
+    required InlineSpan description,
+  }) {
+    return InkWell(
+      onTap: () {
+        onChanged(!value);
+      },
+      splashColor: Colors.transparent,
+      highlightColor: Colors.transparent,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            margin: const EdgeInsets.only(top: 2, right: 10), 
+            width: 12, 
+            height: 12,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: value ? darkTextGrey : lightGrey, 
+            ),
+          ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(titleText, style: boldConsentTextStyle),
+                const SizedBox(height: 2),
+                Text.rich(
+                  description,
+                  style: consentTextStyle,
+                ),
+              ],
             ),
           ),
         ],
