@@ -1,42 +1,40 @@
 const express = require('express');
 const cors = require('cors');
-const { Pool } = require('pg');
+const mysql = require('mysql2/promise'); // Using mysql2/promise for clean async/await
 
 const app = express();
 const port = 3000;
 
 // Middleware
-app.use(cors()); // Crucial for Flutter Web testing
-app.use(express.json()); // Parses incoming JSON requests
+app.use(cors()); 
+app.use(express.json()); 
 
-// Database Connection
-// Replace these with your actual PostgreSQL credentials
-const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'lumiora_db',
-  password: 'your_password',
-  port: 5432,
+// MySQL Connection Pool
+// This replaces your PostgreSQL 'Pool' setup
+const pool = mysql.createPool({
+  host: 'localhost',      // Since it's mapped to port 3306 on your host
+  user: 'root',           // Default MySQL root user
+  password: 'rootpassword', // Matches your docker-compose.yml
+  database: 'lumiora_db',   // Matches your docker-compose.yml
+  port: 3306,
+  waitForConnections: true,
+  connectionLimit: 10
 });
 
-// Pass the database connection to the routes
+// Middleware to inject the db pool into req
 app.use((req, res, next) => {
   req.db = pool;
   next();
 });
 
-// --- Routes ---
+// Routes
 const orderController = require('./controllers/orderController');
-
-// Test Route
-app.get('/api/test', (req, res) => {
-  res.json({ message: 'Backend is live!' });
-});
-
-// Order Route
 app.post('/api/orders', orderController.createOrder);
 
-// Start Server
 app.listen(port, () => {
   console.log(`🚀 Server running at http://localhost:${port}`);
+});
+
+app.get('/', (req, res) => {
+  res.send('🚀 Lumiora Backend is running!');
 });

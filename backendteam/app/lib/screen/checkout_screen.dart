@@ -452,6 +452,10 @@ Widget _buildBottomPayButton(BuildContext context) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(content: Text('Order placed successfully!')),
             );
+            
+            // 👇 ADD THIS LINE TO NAVIGATE TO THE PAYMENT SCREEN 👇
+            Navigator.pushNamed(context, '/payment');
+            
           } else {
             print('❌ FAILED!');
             ScaffoldMessenger.of(context).showSnackBar(
