@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:backendteam/screen/register.dart';
 import 'screen/history_screen.dart';
 import 'screen/menu_screen.dart';
-import 'screen/home_screen.dart';
+// import 'screen/home_screen.dart';
 import 'screen/viewcart_screen.dart';
-import 'screen/checkout_screen.dart';
+// import 'screen/checkout_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -26,9 +26,9 @@ class MyApp extends StatelessWidget {
         '/history': (context) => const HistoryScreen(),
         '/register': (context) => RegisterScreen(),
         '/menu': (context) => const MenuScreen(),
-        '/home': (context) => const HomeScreen(),
+        // '/home': (context) => const HomeScreen(),
         '/cart': (context) => const CartScreen(),
-        '/checkout': (context) => const CheckoutScreen(),
+        // '/checkout': (context) => const CheckoutScreen(),
 
       },
       debugShowCheckedModeBanner: false,
