@@ -15,7 +15,7 @@ const pool = mysql.createPool({
   user: 'root',           
   password: 'rootpassword', // Matches your docker-compose
   database: 'lumiora_db',   // Matches your docker-compose
-  port: 3306,               // Use 3307 here if we changed it earlier to fix the port conflict!
+  port: 3306,               // Use 3307 here if you changed it earlier to fix a port conflict!
   waitForConnections: true,
   connectionLimit: 10
 });
@@ -26,7 +26,6 @@ app.use((req, res, next) => {
   next();
 });
 
-
 // ==========================================
 //                 ROUTES
 // ==========================================
@@ -36,7 +35,7 @@ app.get('/', (req, res) => {
   res.send('🚀 Lumiora Backend is running!');
 });
 
-// 2. GET MENU ROUTE (This is what was missing!)
+// 2. GET MENU ROUTE
 app.get('/api/menu', async (req, res) => {
   try {
     // JOIN the menu and category tables so Flutter gets the category names
@@ -56,8 +55,14 @@ app.get('/api/menu', async (req, res) => {
 
 // 3. CREATE ORDER ROUTE
 const orderController = require('./controllers/orderController');
-app.post('/api/orders/calculate', orderController.calculateOrder);
+if (orderController.calculateOrder) {
+    app.post('/api/orders/calculate', orderController.calculateOrder);
+}
 app.post('/api/orders', orderController.createOrder);
+
+// 4. CUSTOMER / REGISTER ROUTE
+const customerRoutes = require('./routes/customerRoutes');
+app.use('/api/customers', customerRoutes);
 
 
 // ==========================================
