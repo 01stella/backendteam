@@ -77,3 +77,39 @@ exports.deleteCustomer = async (req, res) => {
     res.status(500).json({ message: 'Error deleting customer', error });
   }
 };
+
+exports.loginCustomer = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    if (!email || !password) {
+      return res.status(400).json({ success: false, message: 'Email and password are required' });
+    }
+
+    // 1. Find the user by email
+    const [users] = await req.db.query('SELECT id, full_name, hashed_password FROM customer WHERE email = ?', [email]);
+    
+    if (users.length === 0) {
+      return res.status(401).json({ success: false, message: 'Invalid email or password' });
+    }
+
+    const user = users[0];
+
+    // 2. Compare the typed password with the saved hash
+    const isMatch = await bcrypt.compare(password, user.hashed_password);
+    
+    if (!isMatch) {
+      return res.status(401).json({ success: false, message: 'Invalid email or password' });
+    }
+
+    // 3. Success! Send the user's data back to Flutter
+    res.status(200).json({ 
+      success: true, 
+      data: { id: user.id, full_name: user.full_name } 
+    });
+
+  } catch (error) {
+    console.error("Login Error:", error);
+    res.status(500).json({ success: false, message: 'Server error during login' });
+  }
+};

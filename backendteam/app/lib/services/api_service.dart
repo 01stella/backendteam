@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 class ApiService {
   // Replace this with your actual backend URL later (e.g., your GCP link or local IP)
   static const String baseUrl = 'http://localhost:3000/api';
+  
   // 1. Fetch Menu Items
   static Future<List<dynamic>> fetchMenu() async {
     try {
@@ -48,7 +49,8 @@ class ApiService {
       return null;
     }
   }
-  // --- ADD THIS NEW METHOD ---
+
+  // 3. Calculate Order
   static Future<Map<String, dynamic>?> calculateOrder(List<Map<String, dynamic>> items) async {
     try {
       final response = await http.post(
@@ -69,7 +71,7 @@ class ApiService {
     }
   }
 
-  // 3. Upload Payment Receipt (Multipart Form Data)
+  // 4. Upload Payment Receipt (Multipart Form Data)
   static Future<bool> uploadReceipt(String orderId, File imageFile) async {
     try {
       var request = http.MultipartRequest(
@@ -98,6 +100,60 @@ class ApiService {
     } catch (e) {
       print('Error uploading receipt: $e');
       return false;
+    }
+  }
+
+  // ==========================================
+  //         AUTHENTICATION METHODS
+  // ==========================================
+
+  // 5. REGISTER API CALL
+  static Future<Map<String, dynamic>> registerCustomer({
+    required String fullName,
+    required String email,
+    required String password,
+    required String phone,
+    required String birthday,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/customers/register'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'full_name': fullName,
+          'email': email,
+          'password': password,
+          'phone_number': phone,
+          'birthday': birthday,
+        }),
+      );
+
+      // We use jsonDecode here because your Node backend sends a JSON response 
+      // (like { success: true, message: '...' })
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
+    }
+  }
+
+  // 6. LOGIN API CALL
+  static Future<Map<String, dynamic>> loginCustomer({
+    required String email,
+    required String password,
+  }) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/customers/login'), 
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'email': email,
+          'password': password,
+        }),
+      );
+
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
     }
   }
 }

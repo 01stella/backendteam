@@ -1,13 +1,21 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import '../widgets/custom_bottom_navbar.dart'; // Make sure this path is correct!
+import '../widgets/custom_bottom_navbar.dart'; 
+import '../widgets/welcome_bottom_sheet.dart'; 
 
-class RegisterScreen extends StatelessWidget {
+class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
 
-  void _showWelcomePopup(BuildContext context) {
-    showModalBottomSheet(
+  @override
+  State<RegisterScreen> createState() => _RegisterScreenState();
+}
+
+class _RegisterScreenState extends State<RegisterScreen> {
+  // --- STATE ---
+  String? _loggedInUserName; // Null means not logged in!
+
+  void _showWelcomePopup(BuildContext context) async {
+    // Wait for the bottom sheet to close and see if it hands back user data
+    final userData = await showModalBottomSheet(
       context: context,
       isScrollControlled: true, 
       backgroundColor: Colors.transparent, 
@@ -22,6 +30,13 @@ class RegisterScreen extends StatelessWidget {
         );
       },
     );
+
+    // If we got data back (meaning a successful login), update the UI!
+    if (userData != null && userData['full_name'] != null) {
+      setState(() {
+        _loggedInUserName = userData['full_name'];
+      });
+    }
   }
 
   @override
@@ -29,12 +44,11 @@ class RegisterScreen extends StatelessWidget {
     const bgColor = Color(0xFFF3EFE6);
     
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       backgroundColor: bgColor,
-      // --- MENU-STYLE NAVBAR & FLOATING QR BUTTON ---
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: _buildScanQRButton(bgColor),
-      bottomNavigationBar: const CustomBottomNavBar(selectedIndex: 3), // 3 for Profile
-      // ----------------------------------------------
+      bottomNavigationBar: const CustomBottomNavBar(selectedIndex: 3), 
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
@@ -70,12 +84,18 @@ class RegisterScreen extends StatelessWidget {
     );
   }
 
+  // --- DYNAMIC HEADER ---
   Widget _buildHeader(BuildContext context) {
     final textColor = const Color(0xFF1E1E1E);
     final goldDark = const Color(0xFFC3A358);
     
+    // Check if we have a name. If yes, grab the first initial!
+    String initial = _loggedInUserName != null ? _loggedInUserName![0].toUpperCase() : 'L';
+    String displayText = _loggedInUserName != null ? 'Hi, $_loggedInUserName' : 'LOGIN';
+
     return GestureDetector(
-      onTap: () => _showWelcomePopup(context),
+      // Only allow tapping to open the popup if they are NOT logged in
+      onTap: _loggedInUserName == null ? () => _showWelcomePopup(context) : null,
       behavior: HitTestBehavior.opaque,
       child: Row(
         children: [
@@ -88,7 +108,7 @@ class RegisterScreen extends StatelessWidget {
             ),
             child: Center(
               child: Text(
-                'L',
+                initial, // Shows their initial instead of L
                 style: TextStyle(
                   fontSize: 24,
                   color: goldDark,
@@ -99,7 +119,7 @@ class RegisterScreen extends StatelessWidget {
           ),
           const SizedBox(width: 12),
           Text(
-            'LOGIN',
+            displayText, // Shows their name instead of LOGIN
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.bold,
@@ -112,10 +132,16 @@ class RegisterScreen extends StatelessWidget {
     );
   }
 
+  // ... (Keep your existing _buildCustomerCard, _buildSectionTitle, 
+  // _buildMyAccountCards, _buildLoyaltyStamps, _buildStamp, _buildFAQItem, 
+  // and _buildScanQRButton methods here exactly as they were) ...
+
   Widget _buildCustomerCard() {
     final goldDark = const Color(0xFFC3A358);
     final goldLight = const Color(0xFFE5D5AE);
     final textColor = const Color(0xFF1E1E1E);
+    String initial = _loggedInUserName != null ? _loggedInUserName![0].toUpperCase() : 'L';
+
     return Container(
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
@@ -167,10 +193,10 @@ class RegisterScreen extends StatelessWidget {
                     color: Colors.white.withOpacity(0.3),
                     border: Border.all(color: Colors.white, width: 2),
                   ),
-                  child: const Center(
+                  child: Center(
                     child: Text(
-                      'L',
-                      style: TextStyle(
+                      initial, // Also updates the initial in the gold card!
+                      style: const TextStyle(
                         fontSize: 24,
                         color: Colors.white,
                         fontWeight: FontWeight.w300,
@@ -408,7 +434,6 @@ class RegisterScreen extends StatelessWidget {
     );
   }
 
-  // --- Helper for the Floating SCAN QR Button ---
   Widget _buildScanQRButton(Color bgColor) {
     return Container(
       height: 64,
@@ -431,305 +456,6 @@ class RegisterScreen extends StatelessWidget {
             Text('SCAN QR', style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// ------------------------------------------------------------------------
-// The Modal Bottom Sheet
-// ------------------------------------------------------------------------
-class WelcomeBottomSheet extends StatefulWidget {
-  const WelcomeBottomSheet({super.key});
-
-  @override
-  State<WelcomeBottomSheet> createState() => _WelcomeBottomSheetState();
-}
-
-class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
-  final TextEditingController _phoneController = TextEditingController();
-  final TextEditingController _referralController = TextEditingController();
-  bool _isMarketingChecked = false;
-  bool _isTermsChecked = false;
-
-  static const Color primaryPopupColor = Color(0xFFE6E1D1);
-  static const Color customGreen = Color(0xFFBFC67C);
-  static const Color darkTextGrey = Color(0xFF8A8574);
-  static const Color lightGrey = Color(0xFFDFDAD1);
-  static const Color hintGrey = Color(0xFFAFAFA0); 
-  static const Color buttonColor = Color(0xFFCDC9B6);
-  static const Color buttonTextGrey = Color(0xFF8A8574);
-
-  final TextStyle headerTextStyle = const TextStyle(
-    color: Colors.black, 
-    fontSize: 18, 
-    fontWeight: FontWeight.bold,
-    letterSpacing: 1.0,
-  );
-
-  final TextStyle inputTextStyle = const TextStyle(
-    color: Colors.black,
-    fontSize: 16, 
-  );
-
-  final TextStyle hintTextStyle = const TextStyle(
-    color: hintGrey,
-    fontSize: 16, 
-    fontStyle: FontStyle.normal, 
-  );
-
-  final TextStyle boldConsentTextStyle = const TextStyle(
-    color: Colors.black,
-    fontSize: 11, 
-    fontWeight: FontWeight.bold,
-  );
-
-  final TextStyle consentTextStyle = const TextStyle(
-    color: darkTextGrey,
-    fontSize: 10, 
-    height: 1.2,
-  );
-
-  @override
-  void dispose() {
-    _phoneController.dispose();
-    _referralController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: primaryPopupColor,
-        borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20.0), 
-          topRight: Radius.circular(20.0),
-        ),
-      ),
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.fromLTRB(32, 28, 32, 32), 
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('WELCOME', style: headerTextStyle),
-                  const SizedBox(height: 8), 
-                  Container(
-                    width: 40, 
-                    height: 1.5,
-                    color: customGreen,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 36), 
-
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Column(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.only(bottom: 4, right: 8),
-                        decoration: const BoxDecoration(
-                          border: Border(
-                            bottom: BorderSide(color: lightGrey, width: 1),
-                          ),
-                        ),
-                        child: Text('+62', style: inputTextStyle),
-                      ),
-                      const SizedBox(height: 7), 
-                    ],
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextField(
-                      controller: _phoneController,
-                      keyboardType: TextInputType.phone,
-                      cursorColor: Colors.black,
-                      style: inputTextStyle,
-                      decoration: InputDecoration(
-                        hintText: 'Phone Number...',
-                        hintStyle: hintTextStyle,
-                        isDense: true,
-                        contentPadding: const EdgeInsets.only(bottom: 8, top: 4), 
-                        enabledBorder: const UnderlineInputBorder(
-                          borderSide: BorderSide(color: lightGrey),
-                        ),
-                        focusedBorder: const UnderlineInputBorder(
-                          borderSide: BorderSide(color: Colors.black, width: 1.2),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24), 
-
-              TextField(
-                controller: _referralController,
-                cursorColor: Colors.black,
-                style: inputTextStyle,
-                decoration: InputDecoration(
-                  hintText: 'Referral Code (Optional)',
-                  hintStyle: hintTextStyle,
-                  isDense: true,
-                  contentPadding: const EdgeInsets.only(bottom: 8, top: 4),
-                  enabledBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: lightGrey),
-                  ),
-                  focusedBorder: const UnderlineInputBorder(
-                    borderSide: BorderSide(color: Colors.black, width: 1.2),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    print('Continue pressed.');
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: buttonColor,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(2.0)), 
-                    padding: const EdgeInsets.symmetric(vertical: 14), 
-                  ),
-                  child: const Text(
-                    'CONTINUE',
-                    style: TextStyle(
-                      color: buttonTextGrey,
-                      fontSize: 14, 
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1.5, 
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 32),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  _socialButton(FontAwesomeIcons.solidEnvelope),
-                  const SizedBox(width: 16),
-                  _socialButton(FontAwesomeIcons.apple),
-                  const SizedBox(width: 16),
-                  _socialButton(FontAwesomeIcons.whatsapp),
-                ],
-              ),
-              const SizedBox(height: 32),
-
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  _customConsentCheckbox(
-                    value: _isMarketingChecked,
-                    onChanged: (newValue) {
-                      setState(() {
-                        _isMarketingChecked = newValue!;
-                      });
-                    },
-                    titleText: 'Marketing Communications',
-                    description: const TextSpan(
-                      text: 'I wish to receive marketing communications via WhatsApp, email, text messaging and/ or phonecall.',
-                    ),
-                  ),
-                  const SizedBox(height: 16), 
-                  _customConsentCheckbox(
-                    value: _isTermsChecked,
-                    onChanged: (newValue) {
-                      setState(() {
-                        _isTermsChecked = newValue!;
-                      });
-                    },
-                    titleText: 'Terms and Conditions',
-                    description: TextSpan(
-                      text: 'I confirm I have read and accept the ',
-                      children: <TextSpan>[
-                        TextSpan(
-                          text: 'Terms of Use',
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, decoration: TextDecoration.none),
-                          recognizer: TapGestureRecognizer()..onTap = () {},
-                        ),
-                        const TextSpan(text: ' and '),
-                        TextSpan(
-                          text: 'Privacy Policy',
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black, decoration: TextDecoration.none),
-                          recognizer: TapGestureRecognizer()..onTap = () {},
-                        ),
-                        const TextSpan(text: '.'),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _socialButton(IconData icon) {
-    return Container(
-      width: 40, 
-      height: 40,
-      decoration: const BoxDecoration(
-        color: Color(0xFFDFDAD1), 
-        shape: BoxShape.circle,
-      ),
-      child: Center(
-        child: FaIcon(icon, size: 16, color: darkTextGrey), 
-      ),
-    );
-  }
-
-  Widget _customConsentCheckbox({
-    required bool value,
-    required ValueChanged<bool?> onChanged,
-    required String titleText,
-    required InlineSpan description,
-  }) {
-    return InkWell(
-      onTap: () {
-        onChanged(!value);
-      },
-      splashColor: Colors.transparent,
-      highlightColor: Colors.transparent,
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            margin: const EdgeInsets.only(top: 2, right: 10), 
-            width: 12, 
-            height: 12,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: value ? darkTextGrey : lightGrey, 
-            ),
-          ),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(titleText, style: boldConsentTextStyle),
-                const SizedBox(height: 2),
-                Text.rich(
-                  description,
-                  style: consentTextStyle,
-                ),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }
