@@ -1,0 +1,79 @@
+const bcrypt = require('bcryptjs');
+
+// 1. GET ALL CUSTOMERS (Useful for your Admin Dashboard)
+exports.getAllCustomers = async (req, res) => {
+  try {
+    const [customers] = await req.db.query('SELECT id, full_name, email, phone_number, birthday, created_at FROM customer');
+    res.status(200).json(customers);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching customers', error });
+  }
+};
+
+// 2. GET SINGLE CUSTOMER BY ID
+exports.getCustomerById = async (req, res) => {
+  try {
+    const [customer] = await req.db.query('SELECT id, full_name, email, phone_number, birthday FROM customer WHERE id = ?', [req.params.id]);
+    if (customer.length === 0) return res.status(404).json({ message: 'Customer not found' });
+    res.status(200).json(customer[0]);
+  } catch (error) {
+    res.status(500).json({ message: 'Error fetching customer', error });
+  }
+};
+
+// 3. ADD CUSTOMER / REGISTER (Upgraded with bcrypt!)
+exports.addCustomer = async (req, res) => {
+  try {
+    const { full_name, phone_number, email, birthday, password } = req.body;
+
+    // Validate
+    if (!full_name || !phone_number || !email || !password) {
+      return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    // Check if email already exists
+    const [existing] = await req.db.query('SELECT id FROM customer WHERE email = ?', [email]);
+    if (existing.length > 0) {
+      return res.status(409).json({ message: 'Email already registered' });
+    }
+
+    // Hash the password
+    const salt = await bcrypt.genSalt(10);
+    const hashed_password = await bcrypt.hash(password, salt);
+
+    // Insert into DB
+    const [result] = await req.db.query(
+      `INSERT INTO customer (full_name, phone_number, email, birthday, hashed_password) VALUES (?, ?, ?, ?, ?)`,
+      [full_name, phone_number, email, birthday || null, hashed_password]
+    );
+
+    res.status(201).json({ message: 'Customer created successfully', id: result.insertId });
+  } catch (error) {
+    console.error("Registration Error:", error);
+    res.status(500).json({ message: 'Server error during registration', error });
+  }
+};
+
+// 4. UPDATE CUSTOMER
+exports.updateCustomer = async (req, res) => {
+  try {
+    const { full_name, phone_number, email, birthday } = req.body;
+    await req.db.query(
+      'UPDATE customer SET full_name = ?, phone_number = ?, email = ?, birthday = ? WHERE id = ?',
+      [full_name, phone_number, email, birthday || null, req.params.id]
+    );
+    res.status(200).json({ message: 'Customer updated' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error updating customer', error });
+  }
+};
+
+// 5. DELETE CUSTOMER
+exports.deleteCustomer = async (req, res) => {
+  try {
+    await req.db.query('DELETE FROM customer WHERE id = ?', [req.params.id]);
+    res.status(200).json({ message: 'Customer deleted' });
+  } catch (error) {
+    res.status(500).json({ message: 'Error deleting customer', error });
+  }
+};
