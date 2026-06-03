@@ -3,18 +3,44 @@ import '../model/cart_item.dart';
 import '../services/api_service.dart';
 import 'payment_screen.dart';
 
-class CheckoutScreen extends StatelessWidget {
+class CheckoutScreen extends StatefulWidget {
   final List<CartItem> cartItems;
 
   const CheckoutScreen({Key? key, required this.cartItems}) : super(key: key);
 
-  // --- Calculations ---
-  int get subtotal => cartItems.fold(0, (sum, item) => sum + (item.price * item.quantity));
-  double get pb1 => subtotal * 0.10;
-  double get vat => subtotal * 0.11;
-  double get total => subtotal + pb1 + vat;
+  @override
+  State<CheckoutScreen> createState() => _CheckoutScreenState();
+}
 
-  // Helper to format prices
+class _CheckoutScreenState extends State<CheckoutScreen> {
+  bool _isLoading = true;
+  int _subtotal = 0;
+  int _pb1 = 0;
+  int _vat = 0;
+  int _total = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchCalculations();
+  }
+
+  // >>> THIS ASKS THE BACKEND TO DO THE MATH <<<
+  Future<void> _fetchCalculations() async {
+    final itemsPayload = widget.cartItems.map((i) => {"menu_id": i.menuId, "quantity": i.quantity}).toList();
+    final result = await ApiService.calculateOrder(itemsPayload);
+
+    if (result != null && mounted) {
+      setState(() {
+        _subtotal = result['subtotal'];
+        _pb1 = result['pb1'];
+        _vat = result['vat'];
+        _total = result['total'];
+        _isLoading = false;
+      });
+    }
+  }
+
   String _formatPrice(num price) {
     return 'Rp ${price.toInt()}';
   }
@@ -34,22 +60,20 @@ class CheckoutScreen extends StatelessWidget {
             Container(height: 1.5, color: goldColor.withOpacity(0.5)),
             
             Expanded(
-              child: SingleChildScrollView(
+              child: _isLoading 
+                ? const Center(child: CircularProgressIndicator(color: Color(0xFF8C9862)))
+                : SingleChildScrollView(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildPickUpSection(),
                     Container(height: 8, color: thickDividerColor),
-                    
                     _buildOrderSummary(),
                     Container(height: 8, color: thickDividerColor),
-                    
                     _buildStampCollection(),
                     Container(height: 8, color: thickDividerColor),
-                    
                     _buildPaymentDetails(),
                     Container(height: 8, color: thickDividerColor),
-                    
                     _buildPaymentMethodsAndContacts(),
                     const SizedBox(height: 40), 
                   ],
@@ -59,7 +83,7 @@ class CheckoutScreen extends StatelessWidget {
           ],
         ),
       ),
-      bottomNavigationBar: _buildBottomPayButton(context),
+      bottomNavigationBar: _isLoading ? const SizedBox.shrink() : _buildBottomPayButton(context),
     );
   }
 
@@ -71,15 +95,9 @@ class CheckoutScreen extends StatelessWidget {
       child: Row(
         children: [
           Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: goldColor, width: 1.5),
-            ),
-            child: Center(
-              child: Text('L', style: TextStyle(fontSize: 20, color: goldColor, fontWeight: FontWeight.w300)),
-            ),
+            width: 44, height: 44,
+            decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: goldColor, width: 1.5)),
+            child: Center(child: Text('L', style: TextStyle(fontSize: 20, color: goldColor, fontWeight: FontWeight.w300))),
           ),
           const SizedBox(width: 16),
           const Text('CHECKOUT', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: Color(0xFF1E1E1E))),
@@ -140,8 +158,7 @@ class CheckoutScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 16),
-          // Dynamically generate the list of items from the cart!
-          ...cartItems.map((item) => _buildOrderItemCard(
+          ...widget.cartItems.map((item) => _buildOrderItemCard(
                 name: item.name,
                 description: item.description,
                 price: _formatPrice(item.price * item.quantity),
@@ -225,9 +242,9 @@ class CheckoutScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           
-          _buildDetailRow('Subtotal', _formatPrice(subtotal), isBold: true),
-          _buildDetailRow('PB1 10.00%', _formatPrice(pb1), isBold: true),
-          _buildDetailRow('VAT 11%', _formatPrice(vat), isBold: true),
+          _buildDetailRow('Subtotal', _formatPrice(_subtotal), isBold: true),
+          _buildDetailRow('PB1 10.00%', _formatPrice(_pb1), isBold: true),
+          _buildDetailRow('VAT 11%', _formatPrice(_vat), isBold: true),
           
           const SizedBox(height: 12),
           Row(
@@ -235,7 +252,7 @@ class CheckoutScreen extends StatelessWidget {
             children: [
               const Text('Total :', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Color(0xFF1E1E1E))),
               const SizedBox(width: 16),
-              Text(_formatPrice(total), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E))),
+              Text(_formatPrice(_total), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E))),
             ],
           ),
         ],
@@ -300,28 +317,28 @@ class CheckoutScreen extends StatelessWidget {
     );
   }
 
- Widget _buildBottomPayButton(BuildContext context) {
+  Widget _buildBottomPayButton(BuildContext context) {
     const Color activeGreen = Color(0xFF8C9862);
 
     return Container(
       color: const Color(0xFFF3EFE6), 
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 32),
       child: Column(
-        mainAxisSize: MainAxisSize.min, // Prevents the column from expanding infinitely
+        mainAxisSize: MainAxisSize.min, 
         children: [
           // 1. PAY BUTTON
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () async {
-                final itemsPayload = cartItems.map((i) => {"menu_id": i.menuId, "quantity": i.quantity}).toList();
+                final itemsPayload = widget.cartItems.map((i) => {"menu_id": i.menuId, "quantity": i.quantity}).toList();
                 final result = await ApiService.createOrder(customerId: 1, items: itemsPayload);
 
                 if (result != null && result['success'] == true) {
                   if (!context.mounted) return; 
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => PaymentScreen(totalAmount: total.toInt())),
+                    MaterialPageRoute(builder: (context) => PaymentScreen(totalAmount: _total)),
                   );
                 } else {
                    if (!context.mounted) return;
@@ -337,7 +354,7 @@ class CheckoutScreen extends StatelessWidget {
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: Text(
-                'PAY ${_formatPrice(total)}', 
+                'PAY ${_formatPrice(_total)}', 
                 style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.0),
               ),
             ),
@@ -349,7 +366,7 @@ class CheckoutScreen extends StatelessWidget {
             width: double.infinity,
             child: OutlinedButton(
               onPressed: () {
-                Navigator.pop(context); // Goes back to CartScreen
+                Navigator.pop(context); 
               },
               style: OutlinedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 16),

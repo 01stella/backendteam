@@ -56,6 +56,7 @@ app.get('/api/menu', async (req, res) => {
 
 // 3. CREATE ORDER ROUTE
 const orderController = require('./controllers/orderController');
+app.post('/api/orders/calculate', orderController.calculateOrder);
 app.post('/api/orders', orderController.createOrder);
 
 

@@ -48,6 +48,26 @@ class ApiService {
       return null;
     }
   }
+  // --- ADD THIS NEW METHOD ---
+  static Future<Map<String, dynamic>?> calculateOrder(List<Map<String, dynamic>> items) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/orders/calculate'),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({'items': items}),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body)['data']; // Returns {subtotal, pb1, vat, total}
+      } else {
+        print('Failed to calculate: ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Error calculating order: $e');
+      return null;
+    }
+  }
 
   // 3. Upload Payment Receipt (Multipart Form Data)
   static Future<bool> uploadReceipt(String orderId, File imageFile) async {
