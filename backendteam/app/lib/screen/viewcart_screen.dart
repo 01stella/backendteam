@@ -92,9 +92,12 @@ class _CartScreenState extends State<CartScreen> {
     );
   }
 
-  Widget _buildCartItemCard(int index) {
-    final item = _cartItems[index];
+Widget _buildCartItemCard(int index) {
+    final item = _cartItems[index]; // Make sure _cartItems = CartService().items; at the top of your state!
     const Color activeGreen = Color(0xFF8C9862);
+
+    // Create a clean string of the customer's customizations
+    final String modifiers = '${item.iceLevel} • ${item.sugarLevel} • ${item.coffeeStrength}';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -111,29 +114,30 @@ class _CartScreenState extends State<CartScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            // Checkbox
             SizedBox(
-              width: 24,
-              height: 24,
+              width: 24, height: 24,
               child: Checkbox(
                 value: item.isSelected,
                 activeColor: activeGreen,
                 side: const BorderSide(color: Color(0xFFC3A358)), 
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
                 onChanged: (bool? value) {
-                  setState(() {
-                    item.isSelected = value ?? false;
-                  });
+                  setState(() => item.isSelected = value ?? false);
                 },
               ),
             ),
             const SizedBox(width: 12),
+            
+            // Item Image (Placeholder)
             Container(
-              width: 60,
-              height: 60,
+              width: 60, height: 60,
               decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(8)),
               child: Icon(Icons.fastfood, color: Colors.grey.shade400, size: 28),
             ),
             const SizedBox(width: 16),
+            
+            // Details & Controls
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -142,24 +146,30 @@ class _CartScreenState extends State<CartScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(item.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E))),
-                          const SizedBox(height: 2),
-                          Text(item.description, style: TextStyle(fontSize: 10, color: Colors.black.withOpacity(0.5))),
-                        ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(item.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E))),
+                            const SizedBox(height: 2),
+                            // SHOW CUSTOMIZATIONS HERE INSTEAD OF THE GENERIC DESCRIPTION
+                            Text(
+                              modifiers, 
+                              style: TextStyle(fontSize: 10, color: Colors.black.withOpacity(0.6), height: 1.2),
+                            ),
+                          ],
+                        ),
                       ),
                       Text(_formatPrice(item.price), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E))),
                     ],
                   ),
                   const SizedBox(height: 12),
+                  
+                  // Quantity Controls
                   Row(
                     children: [
                       _buildQtyButton(Icons.remove, () {
-                        if (item.quantity > 1) {
-                          setState(() => item.quantity--);
-                        }
+                        if (item.quantity > 1) setState(() => item.quantity--);
                       }),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -171,9 +181,7 @@ class _CartScreenState extends State<CartScreen> {
                       const SizedBox(width: 12),
                       GestureDetector(
                         onTap: () {
-                          setState(() {
-                            _cartItems.removeAt(index);
-                          });
+                          setState(() => _cartItems.removeAt(index));
                         },
                         child: const Icon(Icons.delete_outline, color: Color(0xFFD7263D), size: 20),
                       ),

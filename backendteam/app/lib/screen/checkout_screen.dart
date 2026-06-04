@@ -144,7 +144,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildOrderSummary() {
+Widget _buildOrderSummary() {
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Column(
@@ -152,15 +152,20 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         children: [
           Row(
             children: [
-              const Text('ORDER SUMMARY', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.2, color: Color(0xFF1E1E1E))),
+              const Text(
+                'ORDER SUMMARY',
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.2, color: Color(0xFF1E1E1E)),
+              ),
               const SizedBox(width: 8),
               Icon(Icons.chevron_right, size: 16, color: Colors.black.withOpacity(0.6)),
             ],
           ),
           const SizedBox(height: 16),
+          // Map through the cart items and inject the modifiers!
           ...widget.cartItems.map((item) => _buildOrderItemCard(
                 name: item.name,
-                description: item.description,
+                // INJECT CUSTOMIZATIONS HERE:
+                description: '${item.iceLevel} • ${item.sugarLevel} • ${item.coffeeStrength}', 
                 price: _formatPrice(item.price * item.quantity),
                 qty: '${item.quantity}x',
               )).toList(),
