@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../model/cart_item.dart';
 import '../services/api_service.dart';
+import '../services/auth_service.dart'; // <--- 1. Imported AuthService!
 import 'payment_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -144,7 +145,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-Widget _buildOrderSummary() {
+  Widget _buildOrderSummary() {
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Column(
@@ -161,10 +162,8 @@ Widget _buildOrderSummary() {
             ],
           ),
           const SizedBox(height: 16),
-          // Map through the cart items and inject the modifiers!
           ...widget.cartItems.map((item) => _buildOrderItemCard(
                 name: item.name,
-                // INJECT CUSTOMIZATIONS HERE:
                 description: '${item.iceLevel} • ${item.sugarLevel} • ${item.coffeeStrength}', 
                 price: _formatPrice(item.price * item.quantity),
                 qty: '${item.quantity}x',
@@ -336,6 +335,23 @@ Widget _buildOrderSummary() {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () async {
+                // --- 2. CHECK IF LOGGED IN ---
+                final user = await AuthService.getUser();
+                
+                if (user == null) {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Please log in from the Profile tab to place an order!'),
+                      backgroundColor: Colors.redAccent,
+                    ),
+                  );
+                  return; // Stop the checkout process here!
+                }
+
+                // User is logged in, grab their real ID!
+                int realCustomerId = user['id'];
+
                 final itemsPayload = widget.cartItems.map((i) => {
                   "menu_id": i.menuId, 
                   "quantity": i.quantity,
@@ -344,7 +360,8 @@ Widget _buildOrderSummary() {
                   "coffee_strength": i.coffeeStrength
                 }).toList();
                 
-                final result = await ApiService.createOrder(customerId: 1, items: itemsPayload);
+                // --- 3. SEND THE REAL ID ---
+                final result = await ApiService.createOrder(customerId: realCustomerId, items: itemsPayload);
 
                 if (result != null && result['success'] == true) {
                   if (!context.mounted) return; 
