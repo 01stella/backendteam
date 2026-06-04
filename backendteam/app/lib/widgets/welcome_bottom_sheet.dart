@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart'; 
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import '../services/api_service.dart'; 
+import '../services/auth_service.dart'; // <--- Added the auth service import!
 
 class WelcomeBottomSheet extends StatefulWidget {
   const WelcomeBottomSheet({super.key});
@@ -181,6 +182,12 @@ class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
                     if (response['success'] == true) {
                       
                       if (_isLogin) {
+                        // NEW: Save the session to the phone!
+                        await AuthService.saveUser(
+                          response['data']['id'], 
+                          response['data']['full_name']
+                        );
+
                         // Pass the 'data' object back to the main screen!
                         Navigator.pop(context, response['data']); 
                         
@@ -191,7 +198,7 @@ class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
                           ),
                         );
                       } else {
-                        // 2. REGISTER SUCCESS: Don't close! Just flip back to Login.
+                        // REGISTER SUCCESS: Don't close! Just flip back to Login.
                         setState(() {
                           _isLogin = true; 
                         });
@@ -204,7 +211,7 @@ class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
                       }
 
                     } else {
-                      // 3. FAIL: Show the error message from the backend
+                      // FAIL: Show the error message from the backend
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
                           content: Text(response['message'] ?? 'An error occurred. Please try again.'), 

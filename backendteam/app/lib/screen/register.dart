@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../widgets/custom_bottom_navbar.dart'; 
 import '../widgets/welcome_bottom_sheet.dart'; 
+import '../services/auth_service.dart'; // <--- Added the auth service import!
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -12,6 +13,22 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   // --- STATE ---
   String? _loggedInUserName; // Null means not logged in!
+
+  // --- NEW: Check storage when the screen loads ---
+  @override
+  void initState() {
+    super.initState();
+    _checkSavedSession();
+  }
+
+  Future<void> _checkSavedSession() async {
+    final user = await AuthService.getUser();
+    if (user != null) {
+      setState(() {
+        _loggedInUserName = user['full_name'];
+      });
+    }
+  }
 
   void _showWelcomePopup(BuildContext context) async {
     // Wait for the bottom sheet to close and see if it hands back user data
@@ -132,10 +149,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
   }
 
-  // ... (Keep your existing _buildCustomerCard, _buildSectionTitle, 
-  // _buildMyAccountCards, _buildLoyaltyStamps, _buildStamp, _buildFAQItem, 
-  // and _buildScanQRButton methods here exactly as they were) ...
-
   Widget _buildCustomerCard() {
     final goldDark = const Color(0xFFC3A358);
     final goldLight = const Color(0xFFE5D5AE);
@@ -214,13 +227,33 @@ class _RegisterScreenState extends State<RegisterScreen> {
               color: goldLight,
               borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
             ),
-            child: const Text(
-              'View My Benefits',
-              textAlign: TextAlign.right,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-              ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // --- NEW: LOGOUT BUTTON ---
+                if (_loggedInUserName != null)
+                  GestureDetector(
+                    onTap: () async {
+                      await AuthService.logout();
+                      setState(() => _loggedInUserName = null);
+                    },
+                    child: const Text(
+                      'Log Out',
+                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.redAccent),
+                    ),
+                  )
+                else
+                  const SizedBox(), // Empty space if not logged in
+
+                const Text(
+                  'View My Benefits',
+                  textAlign: TextAlign.right,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
