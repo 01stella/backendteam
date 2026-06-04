@@ -3,6 +3,7 @@ class CartItem {
   final String name;
   final String description;
   final int price;
+  final String? imgUrl;
   int quantity;
   bool isSelected;
   
@@ -16,6 +17,7 @@ class CartItem {
     required this.name,
     required this.description,
     required this.price,
+    required this.imgUrl,
     this.quantity = 1,
     this.isSelected = true,
     // NEW: Require them in the constructor

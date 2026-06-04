@@ -93,49 +93,41 @@ class _CartScreenState extends State<CartScreen> {
   }
 
 Widget _buildCartItemCard(int index) {
-    final item = _cartItems[index]; // Make sure _cartItems = CartService().items; at the top of your state!
+    final item = _cartItems[index];
     const Color activeGreen = Color(0xFF8C9862);
-
-    // Create a clean string of the customer's customizations
-    final String modifiers = '${item.iceLevel} • ${item.sugarLevel} • ${item.coffeeStrength}';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFFDFDFB),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: activeGreen.withOpacity(0.2), width: 1),
-        boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4)),
-        ],
-      ),
+      // ... your container decoration ...
       child: Padding(
         padding: const EdgeInsets.all(12.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
+       child: Row(
           children: [
-            // Checkbox
+            // 1. YOUR NEW IMAGE SIZEDBOX GOES HERE
             SizedBox(
-              width: 24, height: 24,
-              child: Checkbox(
-                value: item.isSelected,
-                activeColor: activeGreen,
-                side: const BorderSide(color: Color(0xFFC3A358)), 
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
-                onChanged: (bool? value) {
-                  setState(() => item.isSelected = value ?? false);
-                },
-              ),
+              width: 70, 
+              height: 70,
+              child: item.imgUrl != null && item.imgUrl!.isNotEmpty
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        item.imgUrl!, 
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(8)),
+                          child: Icon(Icons.broken_image, color: Colors.grey.shade400),
+                        ),
+                      ),
+                    )
+                  : Container(
+                      decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(8)),
+                      child: Icon(Icons.coffee, color: Colors.grey.shade400, size: 28),
+                    ),
             ),
-            const SizedBox(width: 12),
             
-            // Item Image (Placeholder)
-            Container(
-              width: 60, height: 60,
-              decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(8)),
-              child: Icon(Icons.fastfood, color: Colors.grey.shade400, size: 28),
-            ),
-            const SizedBox(width: 16),
+            // 2. THE SPACING
+            const SizedBox(width: 12),
+          
             
             // Details & Controls
             Expanded(
@@ -154,7 +146,7 @@ Widget _buildCartItemCard(int index) {
                             const SizedBox(height: 2),
                             // SHOW CUSTOMIZATIONS HERE INSTEAD OF THE GENERIC DESCRIPTION
                             Text(
-                              modifiers, 
+                            '${item.iceLevel} • ${item.sugarLevel} • ${item.coffeeStrength}', 
                               style: TextStyle(fontSize: 10, color: Colors.black.withOpacity(0.6), height: 1.2),
                             ),
                           ],

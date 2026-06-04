@@ -61,21 +61,19 @@ class _MenuScreenState extends State<MenuScreen> {
   }
 
   // Trigger the popup
-  void _showItemDetails(BuildContext context, int id, String name, String description, int basePrice) {
+  void _showItemDetails(BuildContext context, int id, String name, String description, int basePrice, String? imgUrl) { 
     showModalBottomSheet(
       context: context,
-      isScrollControlled: true, // Allows us to set a custom height 
-      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
       builder: (context) {
         return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
+          padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
           child: ItemDetailsBottomSheet(
             menuId: id,
             itemName: name,
             itemDescription: description,
             basePrice: basePrice,
+            imgUrl: imgUrl, 
           ),
         );
       },
@@ -246,11 +244,12 @@ class _MenuScreenState extends State<MenuScreen> {
                   return _buildCategorySection(
                     key: _categoryKeys[index],
                     title: catName,
-                    items: itemsInCat.map((item) => _buildItemCard(
-                      id: item['menu_id'], // Pass the DB ID
-                      name: item['item_name'], 
-                      description: item['description'] ?? '', 
+                    items: itemsInCat.map<Widget>((item) => _buildItemCard(
+                      id: item['menu_id'],
+                      name: item['item_name'],
+                      description: item['description'] ?? '',
                       price: int.parse(item['price'].toString().split('.')[0]),
+                      imgUrl: item['image_url'], 
                     )).toList(),
                   );
                 }).toList(),
@@ -303,6 +302,7 @@ class _MenuScreenState extends State<MenuScreen> {
     required String name,
     required String description,
     required int price,
+    required String? imgUrl,
   }) {
     const Color activeGreen = Color(0xFF8C9862);
 
@@ -320,7 +320,20 @@ class _MenuScreenState extends State<MenuScreen> {
         padding: const EdgeInsets.all(12.0),
         child: Row(
           children: [
-            SizedBox(width: 60, height: 60, child: _buildPlaceholderImage()),
+            SizedBox(
+              width: 60, 
+              height: 60, 
+              child: imgUrl != null && imgUrl.isNotEmpty
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        imgUrl, 
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => _buildPlaceholderImage(),
+                      ),
+                    )
+                  : _buildPlaceholderImage(),
+            ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
@@ -335,7 +348,7 @@ class _MenuScreenState extends State<MenuScreen> {
               ),
             ),
             GestureDetector(
-              onTap: () => _showItemDetails(context, id, name, description, price),
+              onTap: () => _showItemDetails(context, id, name, description, price, imgUrl),
               behavior: HitTestBehavior.opaque,
               child: Container(
                 alignment: Alignment.topRight,
@@ -387,6 +400,7 @@ class ItemDetailsBottomSheet extends StatefulWidget {
   final String itemName;
   final String itemDescription;
   final int basePrice;
+  final String? imgUrl; // <--- ADDED
 
   const ItemDetailsBottomSheet({
     Key? key,
@@ -394,6 +408,7 @@ class ItemDetailsBottomSheet extends StatefulWidget {
     required this.itemName,
     required this.itemDescription,
     required this.basePrice,
+    required this.imgUrl, // <--- ADDED
   }) : super(key: key);
 
   @override
@@ -419,13 +434,12 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
-    // Lock the popup to exactly 75% of the screen height so everything fits without scrolling
     final double popupHeight = MediaQuery.of(context).size.height * 0.75;
 
     return Container(
       height: popupHeight,
       decoration: const BoxDecoration(
-        color: Color(0xFFF3EFE6), // Off-white/Beige background
+        color: Color(0xFFF3EFE6), 
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(24.0),
           topRight: Radius.circular(24.0),
@@ -434,7 +448,6 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 1. Top Drag Handle Header
           Container(
             height: 48,
             decoration: BoxDecoration(
@@ -455,14 +468,12 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
             ),
           ),
           
-          // 2. Content Area
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(20, 20, 20, 32),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Title & Description
                   Text(
                     widget.itemName,
                     style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black87),
@@ -474,7 +485,6 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
                   ),
                   const SizedBox(height: 24),
 
-                  // Modifiers
                   _buildSectionTitle('Ice Level'),
                   _buildOptionsRow(
                     options: ['Hot', 'Less Ice', 'Normal Ice'],
@@ -500,7 +510,6 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
                   const Divider(),
                   const SizedBox(height: 16),
 
-                  // Bottom Controls (Price, Quantity, Buttons)
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
@@ -536,8 +545,8 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
                               name: widget.itemName,
                               description: widget.itemDescription,
                               price: widget.basePrice,
+                              imgUrl: widget.imgUrl, 
                               quantity: _quantity,
-                              // NEW: Grab the current state of the modifiers!
                               iceLevel: _selectedIce,
                               sugarLevel: _selectedSugar,
                               coffeeStrength: _selectedStrength,
@@ -571,6 +580,7 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
                               name: widget.itemName,
                               description: widget.itemDescription,
                               price: widget.basePrice,
+                              imgUrl: widget.imgUrl, // <--- ADDED
                               quantity: _quantity,
                               iceLevel: _selectedIce,
                               sugarLevel: _selectedSugar,
@@ -578,10 +588,10 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
                             ));
 
                             Navigator.pop(context);
-                            Navigator.pushNamed(context, '/cart'); // Direct routing to cart screen
+                            Navigator.pushNamed(context, '/cart'); 
                           },
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF947B44), // Darker brownish gold 
+                            backgroundColor: const Color(0xFF947B44), 
                             elevation: 0,
                             padding: const EdgeInsets.symmetric(vertical: 14),
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),

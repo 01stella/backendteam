@@ -151,7 +151,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
-  Widget _buildOrderSummary() {
+Widget _buildOrderSummary() {
     return Padding(
       padding: const EdgeInsets.all(20.0),
       child: Column(
@@ -168,19 +168,28 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             ],
           ),
           const SizedBox(height: 16),
+          // THIS IS THE PART THAT CHANGED!
           ...widget.cartItems.map((item) => _buildOrderItemCard(
                 name: item.name,
                 description: '${item.iceLevel} • ${item.sugarLevel} • ${item.coffeeStrength}', 
                 price: _formatPrice(item.price * item.quantity),
                 qty: '${item.quantity}x',
+                imgUrl: item.imgUrl, // <--- HERE IT IS!
               )).toList(),
         ],
       ),
     );
   }
 
-  Widget _buildOrderItemCard({required String name, required String description, required String price, required String qty}) {
+ Widget _buildOrderItemCard({
+    required String name, 
+    required String description, 
+    required String price, 
+    required String qty,
+    required String? imgUrl, // 1. Added the imgUrl parameter
+  }) {
     const Color activeGreen = Color(0xFF8C9862);
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
@@ -194,10 +203,26 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Container(
-              width: 50, height: 50,
-              decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(8)),
-              child: Icon(Icons.fastfood, color: Colors.grey.shade400, size: 24),
+            // 2. Updated Image Section
+            SizedBox(
+              width: 70, 
+              height: 70,
+              child: imgUrl != null && imgUrl.isNotEmpty
+                  ? ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        imgUrl, 
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => Container(
+                          decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(8)),
+                          child: Icon(Icons.fastfood, color: Colors.grey.shade400, size: 24),
+                        ),
+                      ),
+                    )
+                  : Container(
+                      decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(8)),
+                      child: Icon(Icons.fastfood, color: Colors.grey.shade400, size: 24),
+                    ),
             ),
             const SizedBox(width: 16),
             Expanded(

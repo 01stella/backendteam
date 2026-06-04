@@ -10,5 +10,14 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
+  backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - lumiora-db
+    volumes:
+      - ./backend/public/images:/app/public/images
+
 volumes:
   mysql_data:

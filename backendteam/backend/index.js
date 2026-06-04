@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 const mysql = require('mysql2/promise'); 
 
 const app = express();
@@ -8,14 +9,13 @@ const port = 3000;
 app.use(cors()); 
 app.use(express.json()); 
 
+app.use('/images', express.static(path.join(__dirname, 'public/images')));
+
 const pool = mysql.createPool({
-  host: 'localhost',      
-  user: 'root',           
-  password: 'rootpassword', 
-  database: 'lumiora_db',  
-  port: 3306,               
-  waitForConnections: true,
-  connectionLimit: 10
+  host: 'lumiora-db', // <-- Use the exact service name from your docker-compose.yml
+  user: 'root',
+  password: 'rootpassword',
+  database: 'lumiora_db'
 });
 
 app.use((req, res, next) => {
@@ -31,7 +31,7 @@ app.get('/', (req, res) => {
 app.get('/api/menu', async (req, res) => {
   try {
     const query = `
-      SELECT m.id as menu_id, m.item_name, m.description, m.price, c.name as category_name
+      SELECT m.id as menu_id, m.item_name, m.description, m.price, m.image_url, c.name as category_name
       FROM menu m
       JOIN category c ON m.category_id = c.id
     `;
