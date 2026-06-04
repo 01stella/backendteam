@@ -67,14 +67,22 @@ exports.createOrder = async (req, res, next) => {
     );
     const newOrderId = orderResult.insertId; 
 
+   // Inside createOrder's for-loop...
     for (let item of items) {
       await req.db.query(
-        `INSERT INTO order_items (order_id, menu_id, quantity, ice_level, sugar_level, item_price)
-         VALUES (?, ?, ?, ?, ?, ?)`,
-        [newOrderId, item.menu_id, item.quantity, item.ice_level || 'iced', item.sugar_level || 'normal', item.db_price]
+        `INSERT INTO order_items (order_id, menu_id, quantity, ice_level, sugar_level, coffee_strength, item_price)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+        [
+          newOrderId, 
+          item.menu_id, 
+          item.quantity, 
+          item.ice_level || 'Normal', 
+          item.sugar_level || 'Normal', 
+          item.coffee_strength || 'Normal', // NEW: Insert coffee strength
+          item.db_price
+        ]
       );
     }
-
     res.status(201).json({ success: true, message: 'Order created', order_id: newOrderId, total: grandTotal });
 
   } catch (error) {

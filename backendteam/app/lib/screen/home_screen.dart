@@ -425,7 +425,7 @@ class HomeScreen extends StatelessWidget {
                   'Grand\nFeast',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 28,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                     height: 1.1,
                   ),
@@ -433,7 +433,7 @@ class HomeScreen extends StatelessWidget {
                 const SizedBox(height: 8),
                 const Text(
                   'The Ultimate\nSharing Combo\nfor Everyone',
-                  style: TextStyle(color: Colors.white, fontSize: 12),
+                  style: TextStyle(color: Colors.white, fontSize: 11),
                 ),
                 const SizedBox(height: 8),
                 Row(
@@ -449,7 +449,7 @@ class HomeScreen extends StatelessWidget {
                     const SizedBox(width: 4),
                     const Text(
                       'Rp 105.000',
-                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                      style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 10),
                     ),
                   ],
                 ),

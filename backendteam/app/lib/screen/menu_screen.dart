@@ -531,12 +531,16 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () {
-                            CartService().addItem(CartItem(
+                           CartService().addItem(CartItem(
                               menuId: widget.menuId,
                               name: widget.itemName,
                               description: widget.itemDescription,
                               price: widget.basePrice,
                               quantity: _quantity,
+                              // NEW: Grab the current state of the modifiers!
+                              iceLevel: _selectedIce,
+                              sugarLevel: _selectedSugar,
+                              coffeeStrength: _selectedStrength,
                             ));
 
                             Navigator.pop(context); 
@@ -568,6 +572,9 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
                               description: widget.itemDescription,
                               price: widget.basePrice,
                               quantity: _quantity,
+                              iceLevel: _selectedIce,
+                              sugarLevel: _selectedSugar,
+                              coffeeStrength: _selectedStrength,
                             ));
 
                             Navigator.pop(context);

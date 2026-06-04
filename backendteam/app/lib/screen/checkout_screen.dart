@@ -331,7 +331,14 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () async {
-                final itemsPayload = widget.cartItems.map((i) => {"menu_id": i.menuId, "quantity": i.quantity}).toList();
+                final itemsPayload = widget.cartItems.map((i) => {
+                  "menu_id": i.menuId, 
+                  "quantity": i.quantity,
+                  "ice_level": i.iceLevel,
+                  "sugar_level": i.sugarLevel,
+                  "coffee_strength": i.coffeeStrength
+                }).toList();
+                
                 final result = await ApiService.createOrder(customerId: 1, items: itemsPayload);
 
                 if (result != null && result['success'] == true) {
