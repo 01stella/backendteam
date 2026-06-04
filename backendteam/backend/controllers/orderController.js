@@ -39,11 +39,16 @@ exports.calculateOrder = async (req, res, next) => {
 exports.createOrder = async (req, res, next) => {
   try {
     console.log("🚀 Payload Received from Flutter:", JSON.stringify(req.body, null, 2));
-    const { customer_id, items } = req.body;
+    
+    // Grabbing the new payment_method from Flutter (fallback to 'cashier' just in case)
+    const { customer_id, items, payment_method = 'cashier' } = req.body;
 
     if (!customer_id || !items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ success: false, message: 'customer_id and a non-empty items array are required' });
     }
+
+    // Decide the starting order_status based on their payment choice
+    const initialOrderStatus = payment_method === 'app_qr' ? 'pending' : 'processing';
 
     const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
@@ -60,10 +65,11 @@ exports.createOrder = async (req, res, next) => {
     const vat = subtotal * 0.11;
     const grandTotal = Math.round(subtotal + pb1 + vat);
 
+    // UPDATED INSERT STATEMENT to include the new columns
     const [orderResult] = await req.db.query(
-      `INSERT INTO orders (customer_id, total, order_status, created_at, modified_at)
-       VALUES (?, ?, 'pending', ?, ?)`,
-      [customer_id, grandTotal, now, now]
+      `INSERT INTO orders (customer_id, total, order_status, payment_method, payment_status, created_at, modified_at)
+       VALUES (?, ?, ?, ?, 'unpaid', ?, ?)`,
+      [customer_id, grandTotal, initialOrderStatus, payment_method, now, now]
     );
     const newOrderId = orderResult.insertId; 
 
@@ -78,7 +84,7 @@ exports.createOrder = async (req, res, next) => {
           item.quantity, 
           item.ice_level || 'Normal', 
           item.sugar_level || 'Normal', 
-          item.coffee_strength || 'Normal', // NEW: Insert coffee strength
+          item.coffee_strength || 'Normal', 
           item.db_price
         ]
       );
@@ -87,6 +93,48 @@ exports.createOrder = async (req, res, next) => {
 
   } catch (error) {
     console.error("❌ Controller Error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// 3. NEW: Called by the FLUTTER APP when the customer clicks "I Have Transferred"
+exports.markPaymentPending = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await req.db.query(
+      `UPDATE orders SET payment_status = 'pending_verification' WHERE id = ?`,
+      [id]
+    );
+    res.json({ success: true, message: 'Payment sent to barista for verification.' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// 4. NEW: Called by the BARISTA WEB APP when they verify the funds arrived
+exports.verifyPayment = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await req.db.query(
+      `UPDATE orders SET payment_status = 'paid', order_status = 'processing' WHERE id = ?`,
+      [id]
+    );
+    res.json({ success: true, message: 'Payment verified! Order sent to kitchen.' });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// 5. NEW: Called when the customer wants to cancel their payment verification
+exports.cancelPaymentVerification = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await req.db.query(
+      `UPDATE orders SET payment_status = 'unpaid' WHERE id = ?`,
+      [id]
+    );
+    res.json({ success: true, message: 'Payment verification cancelled.' });
+  } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }
 };

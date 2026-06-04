@@ -1,12 +1,14 @@
 import '../services/cart_service.dart';
+import '../services/api_service.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 
 class PaymentScreen extends StatefulWidget {
   final int totalAmount; // Receives the calculated total
+  final int orderId;
 
-  const PaymentScreen({Key? key, required this.totalAmount}) : super(key: key);
+  const PaymentScreen({Key? key, required this.totalAmount, required this.orderId}) : super(key: key);
 
   @override
   State<PaymentScreen> createState() => _PaymentScreenState();
@@ -246,15 +248,24 @@ class _PaymentScreenState extends State<PaymentScreen> {
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  // Clear the cart memory since the order is paid
-                  CartService().clearCart();
+                onPressed: () async {
+                  // 1. Tell the backend to update the status to 'pending_verification'
+                  bool success = await ApiService.markPaymentPending(widget.orderId);
                   
-                  // Pop everything and go back to the Menu route
-                  Navigator.pushNamedAndRemoveUntil(context, '/menu', (route) => false);
+                  if (success && context.mounted) {
+                    // 2. Clear the cart memory since the order is paid
+                    CartService().clearCart();
+                    
+                    // 3. Pop everything and go back to the Menu route
+                    Navigator.pushNamedAndRemoveUntil(context, '/menu', (route) => false);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Failed to submit proof. Try again.')),
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: buttonColor, // Using the gold/brown color
+                  backgroundColor: buttonColor,
                   padding: const EdgeInsets.symmetric(vertical: 18),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),

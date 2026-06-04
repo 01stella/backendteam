@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../model/cart_item.dart';
 import '../services/api_service.dart';
-import '../services/auth_service.dart'; // <--- 1. Imported AuthService!
+import '../services/auth_service.dart';
+import '../services/cart_service.dart';
 import 'payment_screen.dart';
 
 class CheckoutScreen extends StatefulWidget {
@@ -19,6 +20,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   int _pb1 = 0;
   int _vat = 0;
   int _total = 0;
+  
+  // --- NEW: Track the selected payment method! ---
+  String? _selectedPaymentMethod; 
 
   @override
   void initState() {
@@ -26,7 +30,6 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     _fetchCalculations();
   }
 
-  // >>> THIS ASKS THE BACKEND TO DO THE MATH <<<
   Future<void> _fetchCalculations() async {
     final itemsPayload = widget.cartItems.map((i) => {"menu_id": i.menuId, "quantity": i.quantity}).toList();
     final result = await ApiService.calculateOrder(itemsPayload);
@@ -75,7 +78,10 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                     Container(height: 8, color: thickDividerColor),
                     _buildPaymentDetails(),
                     Container(height: 8, color: thickDividerColor),
-                    _buildPaymentMethodsAndContacts(),
+                    
+                    // --- UPDATED PAYMENT SECTION ---
+                    _buildPaymentMethodsAndContacts(), 
+                    
                     const SizedBox(height: 40), 
                   ],
                 ),
@@ -279,6 +285,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+  // --- NEW: Interactive Payment Selection ---
   Widget _buildPaymentMethodsAndContacts() {
     return Padding(
       padding: const EdgeInsets.all(20.0),
@@ -286,8 +293,23 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('Payment Methods', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E))),
-          const SizedBox(height: 4),
-          const Text('Select Payment Method', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: Color(0xFF1E1E1E), decoration: TextDecoration.underline)),
+          const SizedBox(height: 12),
+          
+          // Option 1: Cashier
+          _buildPaymentOptionCard(
+            title: 'Pay at Cashier',
+            value: 'cashier',
+            icon: Icons.point_of_sale,
+          ),
+          const SizedBox(height: 10),
+          
+          // Option 2: App QR
+          _buildPaymentOptionCard(
+            title: 'Pay via App (Static QR)',
+            value: 'app_qr',
+            icon: Icons.qr_code_scanner,
+          ),
+          
           const SizedBox(height: 32),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -321,8 +343,54 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
     );
   }
 
+  // Helper widget to draw the selectable payment cards
+  Widget _buildPaymentOptionCard({required String title, required String value, required IconData icon}) {
+    bool isSelected = _selectedPaymentMethod == value;
+    const Color activeGreen = Color(0xFF8C9862);
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _selectedPaymentMethod = value;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        decoration: BoxDecoration(
+          color: isSelected ? activeGreen.withOpacity(0.1) : Colors.white,
+          border: Border.all(
+            color: isSelected ? activeGreen : Colors.grey.shade300,
+            width: isSelected ? 1.5 : 1.0,
+          ),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: isSelected ? activeGreen : Colors.grey.shade500, size: 22),
+            const SizedBox(width: 14),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                color: isSelected ? activeGreen : const Color(0xFF1E1E1E),
+              ),
+            ),
+            const Spacer(),
+            if (isSelected)
+              const Icon(Icons.check_circle, color: activeGreen, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildBottomPayButton(BuildContext context) {
     const Color activeGreen = Color(0xFF8C9862);
+    
+    // Check if the button should be disabled
+    bool isButtonDisabled = _selectedPaymentMethod == null;
 
     return Container(
       color: const Color(0xFFF3EFE6), 
@@ -334,8 +402,8 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: () async {
-                // --- 2. CHECK IF LOGGED IN ---
+              // --- DISABLE IF NULL ---
+              onPressed: isButtonDisabled ? null : () async {
                 final user = await AuthService.getUser();
                 
                 if (user == null) {
@@ -346,10 +414,9 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                       backgroundColor: Colors.redAccent,
                     ),
                   );
-                  return; // Stop the checkout process here!
+                  return; 
                 }
 
-                // User is logged in, grab their real ID!
                 int realCustomerId = user['id'];
 
                 final itemsPayload = widget.cartItems.map((i) => {
@@ -360,15 +427,43 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                   "coffee_strength": i.coffeeStrength
                 }).toList();
                 
-                // --- 3. SEND THE REAL ID ---
-                final result = await ApiService.createOrder(customerId: realCustomerId, items: itemsPayload);
+                // IMPORTANT: You will need to update your ApiService.createOrder 
+                // in api_service.dart to accept this new payment_method variable!
+                final result = await ApiService.createOrder(
+                  customerId: realCustomerId, 
+                  paymentMethod: _selectedPaymentMethod, // <--- Passing the state!
+                  items: itemsPayload
+                );
 
                 if (result != null && result['success'] == true) {
                   if (!context.mounted) return; 
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => PaymentScreen(totalAmount: _total)),
-                  );
+                  
+                  if (_selectedPaymentMethod == 'app_qr') {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => PaymentScreen(
+                          totalAmount: _total,
+                          orderId: result['order_id'], 
+                        )
+                      ),
+                    );
+                  } else {
+                    // 1. Clear the cart memory!
+                    CartService().clearCart();
+
+                    // 2. Show the success message
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Order sent to kitchen! Please pay at the cashier.'),
+                        backgroundColor: activeGreen,
+                      ),
+                    );
+                    
+                    // 3. Pop everything and completely reset the stack back to the menu
+                    Navigator.pushNamedAndRemoveUntil(context, '/menu', (route) => false);
+                  }
+
                 } else {
                    if (!context.mounted) return;
                    ScaffoldMessenger.of(context).showSnackBar(
@@ -377,13 +472,15 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 }
               },
               style: ElevatedButton.styleFrom(
+                // Change color if disabled
                 backgroundColor: activeGreen,
+                disabledBackgroundColor: Colors.grey.shade400,
                 elevation: 0,
                 padding: const EdgeInsets.symmetric(vertical: 18),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
               ),
               child: Text(
-                'PAY ${_formatPrice(_total)}', 
+                isButtonDisabled ? 'SELECT PAYMENT METHOD' : 'PAY ${_formatPrice(_total)}', 
                 style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.0),
               ),
             ),
