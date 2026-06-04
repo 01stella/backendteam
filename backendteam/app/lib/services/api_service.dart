@@ -179,4 +179,24 @@ class ApiService {
       return {'success': false, 'message': 'Network error: $e'};
     }
   }
+
+  // 7. FETCH ORDER HISTORY
+  static Future<List<dynamic>?> fetchOrderHistory(int customerId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/orders/customer/$customerId'),
+      );
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = jsonDecode(response.body);
+        return data['data']; // Returns the list of orders
+      } else {
+        debugPrint("Failed to fetch history: ${response.body}");
+        return null;
+      }
+    } catch (e) {
+      debugPrint("Error fetching history: $e");
+      return null;
+    }
+  }
 }

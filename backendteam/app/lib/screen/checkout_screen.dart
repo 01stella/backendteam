@@ -168,7 +168,6 @@ Widget _buildOrderSummary() {
             ],
           ),
           const SizedBox(height: 16),
-          // THIS IS THE PART THAT CHANGED!
           ...widget.cartItems.map((item) => _buildOrderItemCard(
                 name: item.name,
                 description: '${item.iceLevel} • ${item.sugarLevel} • ${item.coffeeStrength}', 
@@ -429,20 +428,10 @@ Widget _buildOrderSummary() {
             child: ElevatedButton(
               // --- DISABLE IF NULL ---
               onPressed: isButtonDisabled ? null : () async {
+                // 1. Since the Cart Screen already verified they are logged in, 
+                // we just grab the ID directly without the error popups.
                 final user = await AuthService.getUser();
-                
-                if (user == null) {
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Please log in from the Profile tab to place an order!'),
-                      backgroundColor: Colors.redAccent,
-                    ),
-                  );
-                  return; 
-                }
-
-                int realCustomerId = user['id'];
+                int realCustomerId = user!['id']; // Safe to force unwrap with ! here
 
                 final itemsPayload = widget.cartItems.map((i) => {
                   "menu_id": i.menuId, 
@@ -452,11 +441,9 @@ Widget _buildOrderSummary() {
                   "coffee_strength": i.coffeeStrength
                 }).toList();
                 
-                // IMPORTANT: You will need to update your ApiService.createOrder 
-                // in api_service.dart to accept this new payment_method variable!
                 final result = await ApiService.createOrder(
                   customerId: realCustomerId, 
-                  paymentMethod: _selectedPaymentMethod, // <--- Passing the state!
+                  paymentMethod: _selectedPaymentMethod,
                   items: itemsPayload
                 );
 
@@ -474,10 +461,8 @@ Widget _buildOrderSummary() {
                       ),
                     );
                   } else {
-                    // 1. Clear the cart memory!
                     CartService().clearCart();
 
-                    // 2. Show the success message
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Order sent to kitchen! Please pay at the cashier.'),
@@ -485,7 +470,6 @@ Widget _buildOrderSummary() {
                       ),
                     );
                     
-                    // 3. Pop everything and completely reset the stack back to the menu
                     Navigator.pushNamedAndRemoveUntil(context, '/menu', (route) => false);
                   }
 

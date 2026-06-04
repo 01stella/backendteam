@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'checkout_screen.dart';
 import '../model/cart_item.dart';
 import '../services/cart_service.dart';
+import '../services/auth_service.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({Key? key}) : super(key: key);
@@ -237,11 +238,31 @@ Widget _buildCartItemCard(int index) {
               const SizedBox(width: 16),
               Expanded(
                 child: ElevatedButton(
-                  // --> HERE IS THE CORRECT ONPRESSED PLACEMENT <--
-                  onPressed: () {
+                  // 1. Make this function async!
+                  onPressed: () async {
                     final selectedItems = _cartItems.where((item) => item.isSelected).toList();
                     if (selectedItems.isEmpty) return;
 
+                    // 2. NEW: Check if they are logged in BEFORE routing!
+                    final user = await AuthService.getUser();
+                    
+                    if (user == null) {
+                      if (!context.mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Please log in from the Profile tab to check out!'),
+                          backgroundColor: Colors.redAccent,
+                          
+                          behavior: SnackBarBehavior.floating,
+                          margin: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        ),
+                      );
+                      return; // Stop the function here so they don't go to Checkout
+                    }
+
+                    // 3. If logged in, safely send them to the Checkout Screen
+                    if (!context.mounted) return;
                     Navigator.push(
                       context,
                       MaterialPageRoute(

@@ -1,0 +1,15 @@
+# Python cache files (makes your image bloated)
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environments (if you ever make a local one)
+venv/
+env/
+
+# Database (prevents copying local dummy data to the cloud)
+db.sqlite3
+
+# Secrets
+.env

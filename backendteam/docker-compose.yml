@@ -5,19 +5,36 @@ services:
     ports:
       - "3306:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_DATABASE: lumiora_db
     volumes:
       - mysql_data:/var/lib/mysql
+    # The crucial healthcheck that the backend and cms are waiting for!
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
   backend:
     build: ./backend
     ports:
       - "3000:3000"
     depends_on:
-      - lumiora-db
+      lumiora-db:
+        condition: service_healthy
     volumes:
       - ./backend/public/images:/app/public/images
+
+  cms:
+    build: ./cms
+    ports:
+      - "8000:8000"
+    depends_on:
+      lumiora-db:
+        condition: service_healthy
+    volumes:
+      - ./cms:/app
 
 volumes:
   mysql_data:

@@ -138,3 +138,36 @@ exports.cancelPaymentVerification = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+// Get Order History for a specific customer
+exports.getCustomerOrders = async (req, res) => {
+  try {
+    const { customerId } = req.params;
+
+    // 1. Fetch the main orders
+    const [orders] = await req.db.query(
+      `SELECT id, total, order_status, created_at 
+       FROM orders 
+       WHERE customer_id = ? 
+       ORDER BY created_at DESC`,
+      [customerId]
+    );
+
+    // 2. Loop through and attach the specific items for each order
+    for (let order of orders) {
+      const [items] = await req.db.query(
+        `SELECT oi.quantity, m.item_name, m.price 
+         FROM order_items oi
+         JOIN menu m ON oi.menu_id = m.id
+         WHERE oi.order_id = ?`,
+        [order.id]
+      );
+      order.items = items;
+    }
+
+    res.status(200).json({ success: true, data: orders });
+  } catch (error) {
+    console.error("Fetch Orders Error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};

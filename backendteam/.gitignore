@@ -1,0 +1,20 @@
+# 🤫 Secrets
+.env
+*.env
+
+# 🟢 Node.js (The Backend & React)
+node_modules/
+npm-debug.log
+dist/
+build/
+
+# 🐍 Python / Django (The CMS)
+__pycache__/
+*.py[cod]
+venv/
+env/
+db.sqlite3
+
+# 💻 OS Junk (Keeps Mac/Windows hidden files out)
+.DS_Store
+Thumbs.db

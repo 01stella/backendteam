@@ -554,9 +554,12 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
 
                             Navigator.pop(context); 
                             ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
+                              SnackBar(
                                 content: Text('Added to Cart!'), 
-                                backgroundColor: Color(0xFF8C9862)
+                                backgroundColor: Color(0xFF8C9862),
+                                behavior: SnackBarBehavior.floating,
+                                margin: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                               ),
                             );
                           },

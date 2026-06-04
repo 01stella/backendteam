@@ -17,4 +17,5 @@ router.put('/:id/verify-payment', orderController.verifyPayment);
 // 3. Customer cancels payment verification
 router.put('/:id/cancel-payment', orderController.cancelPaymentVerification);
 
+router.get('/customer/:customerId', orderController.getCustomerOrders);
 module.exports = router;
