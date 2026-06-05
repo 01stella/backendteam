@@ -28,7 +28,7 @@ class OrderItemsInline(admin.TabularInline):
     model = OrderItems
     extra = 0
     readonly_fields = ('menu', 'quantity', 'ice_level', 'sugar_level', 'coffee_strength', 'item_price')
-    can_delete = False
+    can_delete = True
 
 @admin.register(Orders)
 class OrdersAdmin(admin.ModelAdmin):
