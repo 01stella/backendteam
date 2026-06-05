@@ -35,6 +35,14 @@ services:
         condition: service_healthy
     volumes:
       - ./cms:/app
+  
+  pipeline:
+    build: ./pipeline
+    depends_on:
+      lumiora-db:
+        condition: service_healthy
+    environment:
+      - DB_PASSWORD=${DB_PASSWORD}
 
 volumes:
   mysql_data:
