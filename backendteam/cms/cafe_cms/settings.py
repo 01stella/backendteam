@@ -9,12 +9,17 @@ https://docs.djangoproject.com/en/4.2/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.2/ref/settings/
 """
-
+import environ
+import os
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+env = environ.Env()
+
+# Read the .env file if it exists
+environ.Env.read_env(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
@@ -25,7 +30,7 @@ SECRET_KEY = 'django-insecure-qgjo@9r*x^_$9j%l075$d&#1dqd0j=)^_5^7#3)e9+y-i412s3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['YOUR_VM_PUBLIC_IP', 'localhost', '127.0.0.1']
 
 
 # Application definition
@@ -74,13 +79,24 @@ WSGI_APPLICATION = 'cafe_cms.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'lumiora_db',
+#         'USER': 'root',
+#         'PASSWORD': 'rootpassword',
+#         'HOST': '127.0.0.1', # The name of your Docker database service!
+#         'PORT': '3306',
+#     }
+# }
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'lumiora_db',
-        'USER': 'root',
-        'PASSWORD': 'rootpassword',
-        'HOST': 'lumiora-db', # The name of your Docker database service!
+        'USER': env('DB_USER'),
+        'PASSWORD': env('DB_PASSWORD'),
+        'HOST': env('DB_HOST'),
         'PORT': '3306',
     }
 }
