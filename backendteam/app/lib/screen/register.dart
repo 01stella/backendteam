@@ -292,6 +292,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
             decoration: BoxDecoration(
               color: cardGreen,
               borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+              BoxShadow(
+                color: Colors.black.withOpacity(0.15), // Shadow color and opacity
+                spreadRadius: 1, // Expands the shadow
+                blurRadius: 8,  // Softens the shadow
+                offset: Offset(0, 4), // Moves the shadow (x, y)
+              ),
+            ],
             ),
             child: Column(
               children: [
@@ -326,6 +334,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
             decoration: BoxDecoration(
               color: cardGreen,
               borderRadius: BorderRadius.circular(12),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15), // Shadow color and opacity
+                  spreadRadius: 1, // Expands the shadow
+                  blurRadius: 8,  // Softens the shadow
+                  offset: Offset(0, 4), // Moves the shadow (x, y)
+                ),
+            ],
             ),
             child: Column(
               children: [

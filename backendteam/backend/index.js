@@ -61,6 +61,38 @@ app.get('/api/menu', async (req, res) => {
   }
 });
 
+app.get('/api/bundles', async (req, res) => {
+  try {
+    // We use GROUP_CONCAT to magically squish the menu item names into one comma-separated string!
+    const query = `
+      SELECT 
+        b.id, 
+        b.name, 
+        b.price, 
+        b.image_url,
+        GROUP_CONCAT(m.item_name SEPARATOR ', ') as included_items
+      FROM bundles b
+      LEFT JOIN bundle_items bi ON b.id = bi.bundle_id
+      LEFT JOIN menu m ON bi.menu_item_id = m.id
+      GROUP BY b.id
+    `;
+    
+    const [rows] = await req.db.query(query);
+
+    // Convert the comma-separated string into a clean Javascript array for your Flutter app
+    const formattedData = rows.map(bundle => ({
+      ...bundle,
+      included_items: bundle.included_items ? bundle.included_items.split(', ') : []
+    }));
+    
+    res.json({ success: true, data: formattedData });
+
+  } catch (error) {
+    console.error("❌ Fetch Bundles Error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+});
+
 const orderRoutes = require('./routes/orderRoutes');
 app.use('/api/orders', orderRoutes);
 

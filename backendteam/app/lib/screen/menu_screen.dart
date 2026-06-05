@@ -4,6 +4,8 @@ import 'dart:convert';
 import '../services/api_service.dart';
 import '../services/cart_service.dart';
 import '../model/cart_item.dart';
+import '../model/bundle_model.dart';
+import '../services/bundle_service.dart';
 
 class MenuScreen extends StatefulWidget {
   const MenuScreen({Key? key}) : super(key: key);
@@ -20,8 +22,6 @@ class _MenuScreenState extends State<MenuScreen> {
     'Latte Series',
     'Classics Coffee',
     'Non - Coffee',
-    'Bundling Duo',
-    'Bundling Trio',
     'Pastry & Bakery',
     'Skewers'
   ];
@@ -215,67 +215,125 @@ class _MenuScreenState extends State<MenuScreen> {
   }
 
   Widget _buildMainContent() {
-    return FutureBuilder<Map<String, List<dynamic>>>(
-      future: _menuFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator(color: Color(0xFF8C9862)));
-        }
-        if (snapshot.hasError || !snapshot.hasData) {
-          return const Center(child: Text('Failed to load menu'));
-        }
+      return FutureBuilder<Map<String, List<dynamic>>>(
+        future: _menuFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator(color: Color(0xFF8C9862)));
+          }
+          if (snapshot.hasError || !snapshot.hasData) {
+            return const Center(child: Text('Failed to load menu'));
+          }
 
-        final groupedMenu = snapshot.data!;
+          final groupedMenu = snapshot.data!;
 
-        return Stack(
-          children: [
-            SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(16, 80, 20, 60), 
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: _categories.asMap().entries.map((entry) {
-                  int index = entry.key;
-                  String catName = entry.value;
-                  List<dynamic> itemsInCat = groupedMenu[catName] ?? [];
+          return Stack(
+            children: [
+              SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(16, 80, 20, 60), 
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: _categories.asMap().entries.map((entry) {
+                    int index = entry.key;
+                    String catName = entry.value;
 
-                  // Only render the category section if it has items in the DB
-                  if (itemsInCat.isEmpty) return const SizedBox.shrink();
+                    // ==========================================
+                    // 1. INJECT THE BUNDLES HERE
+                    // ==========================================
+                   // ==========================================
+                  // 1. INJECT THE BUNDLES HERE
+                  // ==========================================
+                  if (catName == 'Special Bundle') {
+                    return Container(
+                      key: _categoryKeys[index], 
+                      margin: const EdgeInsets.only(bottom: 16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Padding(
+                            padding: EdgeInsets.only(bottom: 12.0, left: 4.0),
+                            child: Text(
+                              'Special Bundle',
+                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Color(0xFF1E1E1E)),
+                            ),
+                          ),
+                          
+                          FutureBuilder<List<Bundle>>(
+                            future: fetchBundles(),
+                            builder: (context, bundleSnapshot) {
+                              if (bundleSnapshot.connectionState == ConnectionState.waiting) {
+                                return const Center(child: CircularProgressIndicator(color: Color(0xFF8C9862)));
+                              }
+                              if (bundleSnapshot.hasError || !bundleSnapshot.hasData || bundleSnapshot.data!.isEmpty) {
+                                return const Padding(
+                                  padding: EdgeInsets.only(left: 4.0),
+                                  child: Text('No promos available right now.', style: TextStyle(color: Colors.grey, fontSize: 12)),
+                                );
+                              }
 
-                  return _buildCategorySection(
-                    key: _categoryKeys[index],
-                    title: catName,
-                    items: itemsInCat.map<Widget>((item) => _buildItemCard(
-                      id: item['menu_id'],
-                      name: item['item_name'],
-                      description: item['description'] ?? '',
-                      price: int.parse(item['price'].toString().split('.')[0]),
-                      imgUrl: item['image_url'], 
-                    )).toList(),
-                  );
-                }).toList(),
-              ),
-            ),
-            
-            Positioned(
-              top: 16,
-              right: 20,
-              child: Container(
-                width: 50,
-                height: 50,
-                decoration: const BoxDecoration(color: Color(0xFF8C9862), shape: BoxShape.circle),
-                child: IconButton(
-                  icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 24),
-                  onPressed: () {
-                    Navigator.pushNamed(context, '/cart');
-                  },
+                              final bundles = bundleSnapshot.data!;
+                              return Column(
+                                children: bundles.map((bundle) {
+                                  // Reuse your beautifully designed card and pass the bundle data!
+                                  return _buildItemCard(
+                                    id: bundle.id,
+                                    name: bundle.name,
+                                    description: bundle.includedItems.join(" + "), // Shows "Americano + Espresso"
+                                    price: bundle.price,
+                                    imgUrl: bundle.imageUrl, // Now the image actually loads!
+                                  );
+                                }).toList(),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  }
+
+                    // ==========================================
+                    // 2. YOUR EXISTING REGULAR MENU LOGIC
+                    // ==========================================
+                    List<dynamic> itemsInCat = groupedMenu[catName] ?? [];
+
+                    // Only render the category section if it has items in the DB
+                    if (itemsInCat.isEmpty) return const SizedBox.shrink();
+
+                    return _buildCategorySection(
+                      key: _categoryKeys[index],
+                      title: catName,
+                      items: itemsInCat.map<Widget>((item) => _buildItemCard(
+                        id: item['menu_id'],
+                        name: item['item_name'],
+                        description: item['description'] ?? '',
+                        price: int.parse(item['price'].toString().split('.')[0]),
+                        imgUrl: item['image_url'], 
+                      )).toList(),
+                    );
+                  }).toList(),
                 ),
               ),
-            ),
-          ],
-        );
-      },
-    );
-  }
+              
+              Positioned(
+                top: 16,
+                right: 20,
+                child: Container(
+                  width: 50,
+                  height: 50,
+                  decoration: const BoxDecoration(color: Color(0xFF8C9862), shape: BoxShape.circle),
+                  child: IconButton(
+                    icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white, size: 24),
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/cart');
+                    },
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      );
+    }
 
   Widget _buildCategorySection({required GlobalKey key, required String title, required List<Widget> items}) {
     return Container(
