@@ -47,7 +47,10 @@ def run_pipeline_metrics():
 
     # --- METRIC 4: Total quantity ordered per hour per day ---
     query_4 = """
-        SELECT DATE(o.created_at) as sale_date, HOUR(o.created_at) as sale_hour, SUM(oi.quantity) as hourly_quantity
+        SELECT 
+            DATE(o.created_at) as sale_date, 
+            CONCAT(HOUR(o.created_at), ':00') as sale_hour, 
+            SUM(oi.quantity) as hourly_quantity
         FROM orders o
         JOIN order_items oi ON o.id = oi.order_id
         GROUP BY DATE(o.created_at), HOUR(o.created_at);
