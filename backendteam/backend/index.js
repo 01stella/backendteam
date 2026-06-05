@@ -7,7 +7,6 @@ const adminController = require('./controllers/adminController');
 
 const app = express();
 
-const menuRoutes = require('./routes/menuRoutes');
 // Notice: bundleRoutes import was removed from here to prevent conflicts!
 const orderRoutes = require('./routes/orderRoutes');
 const customerRoutes = require('./routes/customerRoutes');
@@ -67,7 +66,7 @@ app.get('/api/menu', async (req, res) => {
   }
 });
 
-app.get('/api/bundles', async (req, res) => {
+app.get('/api/bundle', async (req, res) => {
   try {
     // We use GROUP_CONCAT to magically squish the menu item names into one comma-separated string!
     const query = `
