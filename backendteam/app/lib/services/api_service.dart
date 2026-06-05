@@ -5,7 +5,7 @@ import 'package:flutter/foundation.dart';
 
 class ApiService {
   // Replace this with your actual backend URL later (e.g., your GCP link or local IP)
-  static const String baseUrl = 'http://localhost:3000/api';
+  static const String baseUrl = 'http://env("DB_HOST"):3000/api';
   
   // 1. Fetch Menu Items
   static Future<List<dynamic>> fetchMenu() async {

@@ -7,6 +7,11 @@ const adminController = require('./controllers/adminController');
 
 const app = express();
 
+const menuRoutes = require('./routes/menuRoutes');
+// Notice: bundleRoutes import was removed from here to prevent conflicts!
+const orderRoutes = require('./routes/orderRoutes');
+const customerRoutes = require('./routes/customerRoutes');
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, path.join(__dirname, 'public/images')); 
@@ -22,11 +27,10 @@ const port = 3000;
 
 app.use(cors()); 
 app.use(express.json()); 
-
 app.use('/images', express.static(path.join(__dirname, 'public/images')));
 
 const pool = mysql.createPool({
-  host: 'lumiora-db', // <-- Use the exact service name from your docker-compose.yml
+  host: 'lumiora-db', // The exact service name from your docker-compose.yml
   user: 'root',
   password: 'rootpassword',
   database: 'lumiora_db'
@@ -37,11 +41,13 @@ app.use((req, res, next) => {
   next();
 });
 
+// --- ADMIN ROUTES ---
 app.post('/api/admin/menu', upload.single('image'), adminController.addMenuItem);
 app.put('/api/admin/menu/:id', upload.single('image'), adminController.updateMenuItem);
 app.delete('/api/admin/menu/:id', adminController.deleteMenuItem);
 
-app.get('/', (req, res) => {
+// --- MAIN ROUTES ---
+app.get('/', (req, res) => { 
   res.send('🚀 Lumiora Backend is running!');
 });
 
@@ -93,12 +99,8 @@ app.get('/api/bundles', async (req, res) => {
   }
 });
 
-const orderRoutes = require('./routes/orderRoutes');
 app.use('/api/orders', orderRoutes);
-
-const customerRoutes = require('./routes/customerRoutes');
 app.use('/api/customers', customerRoutes);
-
 
 app.listen(port, () => {
   console.log(`🚀 Server running at http://localhost:${port}`);
