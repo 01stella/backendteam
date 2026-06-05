@@ -45,6 +45,29 @@ class Menu(models.Model):
     def __str__(self):
         return self.item_name
 
+class Bundle(models.Model):
+    name = models.CharField(max_length=255)
+    price = models.IntegerField()
+    image_url = models.CharField(max_length=255, blank=True, null=True)
+
+    class Meta:
+        db_table = 'bundles' # Connects exactly to your HeidiSQL table
+        managed = False # Tells Django: "Don't create this, it already exists in MySQL"
+
+    def __str__(self):
+        return self.name
+
+class BundleItem(models.Model):
+    bundle = models.ForeignKey(Bundle, on_delete=models.CASCADE)
+    menu_item = models.ForeignKey('Menu', on_delete=models.CASCADE) # Links to your existing Menu model
+
+    class Meta:
+        db_table = 'bundle_items'
+        managed = False
+
+    def __str__(self):
+        return f"{self.bundle.name} - {self.menu_item.item_name}"
+
 
 class Orders(models.Model):
     customer = models.ForeignKey(Customer, models.DO_NOTHING, blank=True, null=True)

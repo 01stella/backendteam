@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Customer, Menu, Orders, OrderItems
+from .models import Category, Customer, Menu, Orders, OrderItems, Bundle, BundleItem
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -16,11 +16,22 @@ class MenuAdmin(admin.ModelAdmin):
     list_filter = ('category',)
     ordering = ('category', 'item_name')
 
+class BundleItemInline(admin.TabularInline):
+    model = BundleItem
+    extra = 2
+
+@admin.register(Bundle)
+class BundleAdmin(admin.ModelAdmin):
+    list_display = ('name', 'price', 'image_url')
+    search_fields = ('name',)
+    inlines = [BundleItemInline]
+
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
     list_display = ('full_name', 'email', 'phone_number', 'created_at')
     search_fields = ('full_name', 'email', 'phone_number')
     date_hierarchy = 'created_at'
+
 
 # We use an "Inline" so you can see the specific coffees inside an order 
 # directly on the Order page, rather than having to click around.
