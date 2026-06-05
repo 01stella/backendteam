@@ -53,7 +53,7 @@ def run_pipeline_metrics():
             SUM(oi.quantity) as hourly_quantity
         FROM orders o
         JOIN order_items oi ON o.id = oi.order_id
-        GROUP BY DATE(o.created_at), HOUR(o.created_at);
+        GROUP BY DATE(o.created_at), HOUR(o.created_at), sale_hour;
     """
     pd.read_sql(query_4, engine).to_sql('metrics_hourly_qty', engine, if_exists='replace', index=False)
     print(" 4/4: Hourly Quantity warehoused.")
