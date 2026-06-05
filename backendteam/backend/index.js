@@ -1,9 +1,23 @@
 const express = require('express');
 const cors = require('cors');
+const multer = require('multer');
 const path = require('path');
 const mysql = require('mysql2/promise'); 
+const adminController = require('./controllers/adminController');
 
 const app = express();
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.join(__dirname, 'public/images')); 
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + '-' + file.originalname.replace(/\s+/g, '-')); 
+  }
+});
+
+const upload = multer({ storage: storage });
 const port = 3000;
 
 app.use(cors()); 
@@ -23,6 +37,9 @@ app.use((req, res, next) => {
   next();
 });
 
+app.post('/api/admin/menu', upload.single('image'), adminController.addMenuItem);
+app.put('/api/admin/menu/:id', upload.single('image'), adminController.updateMenuItem);
+app.delete('/api/admin/menu/:id', adminController.deleteMenuItem);
 
 app.get('/', (req, res) => {
   res.send('🚀 Lumiora Backend is running!');
