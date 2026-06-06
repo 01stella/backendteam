@@ -31,8 +31,16 @@ class HistoryCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFFF3F3DD),
+        color: const Color.fromARGB(255, 244, 231, 214),
         borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.15), // Shadow color and opacity
+                  spreadRadius: 0.5, // Expands the shadow
+                  blurRadius: 6,  // Softens the shadow
+                  offset: Offset(0, 3), // Moves the shadow (x, y)
+                ),
+            ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -78,7 +86,7 @@ class HistoryCard extends StatelessWidget {
                   children: [
                     ClipRRect(
                       borderRadius: BorderRadius.circular(8),
-                      child: Image.network(item.imageUrl, width: 38, height: 38, fit: BoxFit.cover),
+                      child: Image.network(item.imageUrl, width: 38, height: 38, fit: BoxFit.contain),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -100,8 +108,7 @@ class HistoryCard extends StatelessWidget {
                     if (item.price != null)
                       Text('Rp ${item.price}',
                           style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13,
+                              fontSize: 12,
                               color: Color(0xFF1A1A1A))),
                   ],
                 ),
@@ -110,14 +117,15 @@ class HistoryCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text('Rp $price',
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                      color: Color(0xFF1A1A1A))),
               Text('$itemCount item',
                   style: const TextStyle(
-                      fontSize: 11, color: Color(0xFFB0B0B0))),
+                      fontSize: 10, color: Color.fromARGB(255, 158, 92, 54))),
+              Text('Rp $price',
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 12,
+                      color: Color(0xFF1A1A1A))),
             ],
           ),
           if (detailsText != null)
@@ -126,9 +134,9 @@ class HistoryCard extends StatelessWidget {
               child: Text(detailsText!,
                   style: const TextStyle(
                       decoration: TextDecoration.underline,
-                      color: Color(0xFF1A1A1A),
+                      color: Color.fromARGB(255, 168, 103, 72),
                       fontWeight: FontWeight.bold,
-                      fontSize: 13)),
+                      fontSize: 11)),
             ),
           if (actionButton != null)
             Padding(

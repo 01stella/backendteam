@@ -185,7 +185,7 @@ class _MenuScreenState extends State<MenuScreen> {
               decoration: BoxDecoration(
                 border: Border(
                   right: BorderSide(
-                    color: isSelected ? activeGreen : Colors.grey.withOpacity(0.3),
+                    color: isSelected ? activeGreen : const Color.fromARGB(255, 87, 9, 9).withOpacity(0.3),
                     width: 1.5,
                   ),
                 ),
@@ -396,7 +396,7 @@ class _MenuScreenState extends State<MenuScreen> {
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: activeGreen.withOpacity(0.3), width: 1),
         boxShadow: [
-          BoxShadow(color: Colors.black.withOpacity(0.04), blurRadius: 8, offset: const Offset(0, 4)),
+          BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 6, offset: const Offset(0, 4)),
         ],
       ),
       child: Padding(
@@ -515,46 +515,12 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
   final Color _activeGreen = const Color(0xFF8C9862);
   final Color _inactiveBorder = const Color(0xFFC3A358); 
 
-  @override
-  void initState() {
-    super.initState();
-
-    _bundleCustomizations = widget.bundleItems.map((item) {
-      return BundleCartCustomization(
-        menuId: item.menuId,
-        name: item.name,
-        iceLevel: 'Hot',
-        sugarLevel: 'Less Sugar',
-        coffeeStrength: 'Normal',
-      );
-    }).toList();
-  }
-
   String _formatPrice(int price) {
     final String priceStr = price.toString();
     if (priceStr.length > 3) {
       return 'Rp ${priceStr.substring(0, priceStr.length - 3)}.${priceStr.substring(priceStr.length - 3)}';
     }
     return 'Rp $priceStr';
-  }
-
-  void _updateSelectedBundleCustomization({
-    String? iceLevel,
-    String? sugarLevel,
-    String? coffeeStrength,
-  }) {
-    if (_bundleCustomizations.isEmpty) return;
-
-    final current = _bundleCustomizations[_selectedBundleIndex];
-    setState(() {
-      _bundleCustomizations[_selectedBundleIndex] = BundleCartCustomization(
-        menuId: current.menuId,
-        name: current.name,
-        iceLevel: iceLevel ?? current.iceLevel,
-        sugarLevel: sugarLevel ?? current.sugarLevel,
-        coffeeStrength: coffeeStrength ?? current.coffeeStrength,
-      );
-    });
   }
 
   @override
@@ -610,75 +576,26 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
                   ),
                   const SizedBox(height: 24),
 
-                  if (widget.itemType == 'bundle' && _bundleCustomizations.isNotEmpty) ...[
-                    Wrap(
-                      spacing: 8,
-                      runSpacing: 8,
-                      children: _bundleCustomizations.asMap().entries.map((entry) {
-                        final index = entry.key;
-                        final item = entry.value;
-                        final isSelected = index == _selectedBundleIndex;
+                  _buildSectionTitle('Ice Level'),
+                  _buildOptionsRow(
+                    options: ['Hot', 'Less Ice', 'Normal Ice'],
+                    selectedValue: _selectedIce,
+                    onSelect: (val) => setState(() => _selectedIce = val),
+                  ),
 
-                        return ChoiceChip(
-                          label: Text(item.name),
-                          selected: isSelected,
-                          selectedColor: _activeGreen,
-                          labelStyle: TextStyle(
-                            color: isSelected ? Colors.white : Colors.black87,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-                          ),
-                          onSelected: (_) {
-                            setState(() {
-                              _selectedBundleIndex = index;
-                            });
-                          },
-                        );
-                      }).toList(),
-                    ),
-                    const SizedBox(height: 20),
-                    Text(
-                      _bundleCustomizations[_selectedBundleIndex].name,
-                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildSectionTitle('Ice Level'),
-                    _buildOptionsRow(
-                      options: ['Hot', 'Less Ice', 'Normal Ice'],
-                      selectedValue: _bundleCustomizations[_selectedBundleIndex].iceLevel,
-                      onSelect: (val) => _updateSelectedBundleCustomization(iceLevel: val),
-                    ),
-                    _buildSectionTitle('Sugar Level'),
-                    _buildOptionsRow(
-                      options: ['No Sugar', 'Less Sugar', 'Normal Sugar'],
-                      selectedValue: _bundleCustomizations[_selectedBundleIndex].sugarLevel,
-                      onSelect: (val) => _updateSelectedBundleCustomization(sugarLevel: val),
-                    ),
-                    _buildSectionTitle('Coffee Strength'),
-                    _buildOptionsRow(
-                      options: ['Normal', 'Strong'],
-                      selectedValue: _bundleCustomizations[_selectedBundleIndex].coffeeStrength,
-                      onSelect: (val) => _updateSelectedBundleCustomization(coffeeStrength: val),
-                    ),
-                  ] else ...[
-                    _buildSectionTitle('Ice Level'),
-                    _buildOptionsRow(
-                      options: ['Hot', 'Less Ice', 'Normal Ice'],
-                      selectedValue: _selectedIce,
-                      onSelect: (val) => setState(() => _selectedIce = val),
-                    ),
-                    _buildSectionTitle('Sugar Level'),
-                    _buildOptionsRow(
-                      options: ['No Sugar', 'Less Sugar', 'Normal Sugar'],
-                      selectedValue: _selectedSugar,
-                      onSelect: (val) => setState(() => _selectedSugar = val),
-                    ),
-                    _buildSectionTitle('Coffee Strength'),
-                    _buildOptionsRow(
-                      options: ['Normal', 'Strong'],
-                      selectedValue: _selectedStrength,
-                      onSelect: (val) => setState(() => _selectedStrength = val),
-                    ),
-                  ],
+                  _buildSectionTitle('Sugar Level'),
+                  _buildOptionsRow(
+                    options: ['No Sugar', 'Less Sugar', 'Normal Sugar'],
+                    selectedValue: _selectedSugar,
+                    onSelect: (val) => setState(() => _selectedSugar = val),
+                  ),
+
+                  _buildSectionTitle('Coffee Strength'),
+                  _buildOptionsRow(
+                    options: ['Normal', 'Strong'],
+                    selectedValue: _selectedStrength,
+                    onSelect: (val) => setState(() => _selectedStrength = val),
+                  ),
 
                   const SizedBox(height: 8),
                   const Divider(),
@@ -723,7 +640,6 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
                                 description: widget.itemDescription,
                                 price: widget.basePrice,
                                 imgUrl: widget.imgUrl, 
-                                bundleItems: widget.itemType == 'bundle' ? _bundleCustomizations : const [],
                                 quantity: _quantity,
                                 iceLevel: _selectedIce,
                                 sugarLevel: _selectedSugar,
@@ -765,7 +681,6 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
                               description: widget.itemDescription,
                               price: widget.basePrice,
                               imgUrl: widget.imgUrl, // <--- ADDED
-                              bundleItems: widget.itemType == 'bundle' ? _bundleCustomizations : const [],
                               quantity: _quantity,
                               iceLevel: _selectedIce,
                               sugarLevel: _selectedSugar,

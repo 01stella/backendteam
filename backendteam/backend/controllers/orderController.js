@@ -239,7 +239,7 @@ exports.getCustomerOrders = async (req, res) => {
     // 2. Loop through and attach the specific items for each order
     for (let order of orders) {
       const [items] = await req.db.query(
-        `SELECT oi.quantity, m.item_name, m.price 
+        `SELECT oi.quantity, m.item_name, m.price, m.image_url 
          FROM order_items oi
          JOIN menu m ON oi.menu_id = m.id
          WHERE oi.order_id = ?`,

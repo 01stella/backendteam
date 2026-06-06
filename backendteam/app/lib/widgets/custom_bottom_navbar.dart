@@ -9,7 +9,7 @@ class CustomBottomNavBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BottomAppBar(
-      color: Colors.white,
+      color: const Color.fromARGB(255, 244, 231, 231),
       elevation: 10,
       notchMargin: 0,
       padding: EdgeInsets.zero,
@@ -32,7 +32,7 @@ class CustomBottomNavBar extends StatelessWidget {
   Widget _buildNavButton(BuildContext context, IconData icon, String label, int index, String route) {
     bool isSelected = selectedIndex == index;
     // Uses the premium Olive Green color from the Menu screen
-    final activeColor = const Color(0xFF8C9862); 
+    final activeColor = const Color.fromARGB(255, 148, 166, 86); 
     final inactiveColor = const Color(0xFFB0B0B0);
 
     return GestureDetector(
@@ -73,7 +73,7 @@ class ScanQRButton extends StatelessWidget {
       width: 64,
       margin: const EdgeInsets.only(top: 24), 
       decoration: BoxDecoration(
-        color: const Color(0xFF8C9862), 
+        color: const Color.fromARGB(255, 125, 158, 112), 
         shape: BoxShape.circle,
         // The border perfectly matches the background of the screen it's on
         border: Border.all(color: bgColor, width: 4), 

@@ -82,7 +82,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   fontWeight: FontWeight.bold,
                   fontSize: 16,
                   color: Color(0xFFB98068),
-                  letterSpacing: 1.2,
+                  letterSpacing: 1.0,
                 ),
               ),
             ),
@@ -99,6 +99,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         final order = _orders[index];
                         final items = order['items'] as List<dynamic>? ?? [];
                         
+                        
                         // Safely parse the date
                         String rawDate = order['created_at'] ?? '';
                         String formattedDate = rawDate.length > 16 
@@ -114,13 +115,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
                           itemCount: items.length,
                           // Map the database items into your custom OrderItem class!
                           items: items.map((item) => OrderItem(
-                            // Using a fallback dummy image since we aren't pulling image URLs from the DB yet
-                            imageUrl: 'https://i.imgur.com/1bX5QH6.png', 
+                            imageUrl: item['image_url'] ?? '', 
                             name: item['item_name'] ?? 'Item',
                             description: 'Qty: ${item['quantity']}',
                             price: item['price'] != null ? item['price'].toString() : null,
                           )).toList(),
                           detailsText: 'Click for details',
+                          
                         );
                       },
                     ),
