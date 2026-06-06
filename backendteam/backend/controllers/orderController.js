@@ -1,4 +1,3 @@
-// 1. NEW: The Calculate Endpoint (Previews the math without saving)
 exports.calculateOrder = async (req, res, next) => {
   try {
     const { items } = req.body;
@@ -127,7 +126,20 @@ exports.createOrder = async (req, res, next) => {
           throw new Error(`Bundle ${item.bundle_id} has no items`);
         }
 
+        const allowedMenuIds = new Set(bundleItems.map(i => i.menu_item_id));
+        const submittedBundleItems = Array.isArray(item.bundle_items) ? item.bundle_items : [];
+
+        for (const submitted of submittedBundleItems) {
+          if (!allowedMenuIds.has(submitted.menu_id)) {
+            throw new Error(`Menu item ${submitted.menu_id} does not belong to bundle ${item.bundle_id}`);
+          }
+        }
+
         for (const bundleItem of bundleItems) {
+          const submitted = submittedBundleItems.find(
+            custom => custom.menu_id === bundleItem.menu_item_id
+          ) || {};
+
           await req.db.query(
             `INSERT INTO order_items (order_id, menu_id, quantity, ice_level, sugar_level, coffee_strength, item_price)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -135,9 +147,9 @@ exports.createOrder = async (req, res, next) => {
               newOrderId,
               bundleItem.menu_item_id,
               item.quantity,
-              item.ice_level || 'Normal',
-              item.sugar_level || 'Normal',
-              item.coffee_strength || 'Normal',
+              submitted.ice_level || 'Normal',
+              submitted.sugar_level || 'Normal',
+              submitted.coffee_strength || 'Normal',
               0
             ]
           );
@@ -165,6 +177,7 @@ exports.createOrder = async (req, res, next) => {
     console.error("❌ Controller Error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
+
 };
 
 // 3. NEW: Called by the FLUTTER APP when the customer clicks "I Have Transferred"

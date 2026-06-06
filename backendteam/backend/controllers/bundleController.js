@@ -1,40 +1,46 @@
 exports.getBundles = async (req, res) => {
   try {
-    // We use GROUP_CONCAT to merge the multiple included items into a single string, 
-    // which we will split into an array before sending to Flutter.
     const query = `
       SELECT 
-        b.id, 
-        b.name, 
-        b.price, 
+        b.id AS bundle_id,
+        b.name AS bundle_name,
+        b.price,
         b.image_url,
-        GROUP_CONCAT(m.item_name SEPARATOR '||') as included_items
-        FROM bundles b
-        LEFT JOIN bundle_items bi ON b.id = bi.bundle_id
-        LEFT JOIN menu m ON bi.menu_item_id = m.id
-        GROUP BY b.id, b.name, b.price, b.image_url
-        `;
-    
+        m.id AS menu_id,
+        m.item_name
+      FROM bundles b
+      LEFT JOIN bundle_items bi ON b.id = bi.bundle_id
+      LEFT JOIN menu m ON bi.menu_item_id = m.id
+      ORDER BY b.id, bi.id
+    `;
 
-    const [results] = await req.db.query(query);
+    const [rows] = await req.db.query(query);
 
-    const formattedBundles = results.map(row => {
-      return {
-        id: row.id,
-        name: row.name,
-        price: row.price,
-        image_url: row.image_url,
-        // Convert the "Item1||Item2" string into an array: ["Item1", "Item2"]
-        // If there are no items, return an empty array []
-        included_items: row.included_items ? row.included_items.split('||') : []
-      };
-    });
+    const bundleMap = new Map();
+
+    for (const row of rows) {
+      if (!bundleMap.has(row.bundle_id)) {
+        bundleMap.set(row.bundle_id, {
+          id: row.bundle_id,
+          name: row.bundle_name,
+          price: row.price,
+          image_url: row.image_url || '',
+          included_items: []
+        });
+      }
+
+      if (row.menu_id) {
+        bundleMap.get(row.bundle_id).included_items.push({
+          menu_id: row.menu_id,
+          name: row.item_name
+        });
+      }
+    }
 
     res.status(200).json({
       success: true,
-      data: formattedBundles
+      data: Array.from(bundleMap.values())
     });
-
   } catch (error) {
     console.error('Error fetching bundles:', error);
     res.status(500).json({

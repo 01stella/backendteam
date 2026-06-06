@@ -1,9 +1,26 @@
+class BundleIncludedItem {
+  final int menuId;
+  final String name;
+
+  BundleIncludedItem({
+    required this.menuId,
+    required this.name,
+  });
+
+  factory BundleIncludedItem.fromJson(Map<String, dynamic> json) {
+    return BundleIncludedItem(
+      menuId: json['menu_id'],
+      name: json['name'],
+    );
+  }
+}
+
 class Bundle {
   final int id;
   final String name;
   final int price;
   final String imageUrl;
-  final List<String> includedItems;
+  final List<BundleIncludedItem> includedItems;
 
   Bundle({
     required this.id, 
@@ -13,14 +30,16 @@ class Bundle {
     required this.includedItems
   });
 
+
   factory Bundle.fromJson(Map<String, dynamic> json) {
     return Bundle(
       id: json['id'],
       name: json['name'],
-      price: json['price'],
+      price: int.parse(json['price'].toString().split('.')[0]),
       imageUrl: json['image_url'] ?? '',
-      // Converting the JSON array into a Dart List of Strings
-      includedItems: List<String>.from(json['included_items'] ?? []),
+      includedItems: (json['included_items'] as List? ?? [])
+          .map((item) => BundleIncludedItem.fromJson(item))
+          .toList(),
     );
   }
 }

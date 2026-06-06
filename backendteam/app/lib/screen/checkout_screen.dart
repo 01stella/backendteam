@@ -31,12 +31,16 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   }
 
   Future<void> _fetchCalculations() async {
-    final itemsPayload = widget.cartItems.map((i) => {
-      "item_type": i.itemType,
-      "menu_id": i.menuId,
-      "bundle_id": i.bundleId,
-      "quantity": i.quantity
-    }).toList();
+   final itemsPayload = widget.cartItems.map((i) => {
+    "item_type": i.itemType,
+    "menu_id": i.menuId,
+    "bundle_id": i.bundleId,
+    "quantity": i.quantity,
+    "ice_level": i.iceLevel,
+    "sugar_level": i.sugarLevel,
+    "coffee_strength": i.coffeeStrength,
+    "bundle_items": i.bundleItems.map((b) => b.toJson()).toList(),
+  }).toList();
     final result = await ApiService.calculateOrder(itemsPayload);
 
     if (result != null && mounted) {
@@ -438,14 +442,15 @@ Widget _buildOrderSummary() {
                 final user = await AuthService.getUser();
                 int realCustomerId = user!['id']; // Safe to force unwrap with ! here
 
-               final itemsPayload = widget.cartItems.map((i) => {
+              final itemsPayload = widget.cartItems.map((i) => {
                 "item_type": i.itemType,
                 "menu_id": i.menuId,
                 "bundle_id": i.bundleId,
                 "quantity": i.quantity,
                 "ice_level": i.iceLevel,
                 "sugar_level": i.sugarLevel,
-                "coffee_strength": i.coffeeStrength
+                "coffee_strength": i.coffeeStrength,
+                "bundle_items": i.bundleItems.map((b) => b.toJson()).toList(),
               }).toList();
                 
                 final result = await ApiService.createOrder(

@@ -70,6 +70,7 @@ class _MenuScreenState extends State<MenuScreen> {
       String description,
       int basePrice,
       String? imgUrl,
+      List<BundleIncludedItem> bundleItems,
     ) {
     showModalBottomSheet(
       context: context,
@@ -80,7 +81,8 @@ class _MenuScreenState extends State<MenuScreen> {
           child: ItemDetailsBottomSheet(
             itemType: itemType,
             menuId: menuId,
-            bundleId: bundleId,   
+            bundleId: bundleId,
+            bundleItems: bundleItems,   
             itemName: name,
             itemDescription: description,
             basePrice: basePrice,
@@ -292,9 +294,10 @@ class _MenuScreenState extends State<MenuScreen> {
                                     menuId: null,
                                     bundleId: bundle.id,
                                     name: bundle.name,
-                                    description: bundle.includedItems.join(" + "),
+                                    description: bundle.includedItems.map((i) => i.name).join(" + "),
                                     price: bundle.price,
                                     imgUrl: bundle.imageUrl,
+                                    bundleItems: bundle.includedItems,
                                   );  
                                 }).toList(),
                               );
@@ -321,6 +324,7 @@ class _MenuScreenState extends State<MenuScreen> {
                         itemType: 'menu',
                         menuId: item['menu_id'],
                         bundleId: null,
+                        bundleItems: const [],
                         name: item['item_name'],
                         description: item['description'] ?? '',
                         price: int.parse(item['price'].toString().split('.')[0]),
@@ -380,6 +384,7 @@ class _MenuScreenState extends State<MenuScreen> {
     required String itemType, // 'menu' or 'bundle'
     required int? menuId,
     required int? bundleId,
+    required List<BundleIncludedItem> bundleItems,
     
   }) {
     const Color activeGreen = Color(0xFF8C9862);
@@ -426,7 +431,7 @@ class _MenuScreenState extends State<MenuScreen> {
               ),
             ),
             GestureDetector(
-              onTap: () => _showItemDetails(context, itemType, menuId, bundleId, name, description, price, imgUrl),
+              onTap: () => _showItemDetails(context, itemType, menuId, bundleId, name, description, price, imgUrl, bundleItems),
               behavior: HitTestBehavior.opaque,
               child: Container(
                 alignment: Alignment.topRight,
@@ -480,7 +485,8 @@ class ItemDetailsBottomSheet extends StatefulWidget {
   final String itemName;
   final String itemDescription;
   final int basePrice;
-  final String? imgUrl; // <--- ADDED
+  final String? imgUrl;
+  final List<BundleIncludedItem> bundleItems; 
 
   const ItemDetailsBottomSheet({
     Key? key,
@@ -490,7 +496,8 @@ class ItemDetailsBottomSheet extends StatefulWidget {
     required this.itemName,
     required this.itemDescription,
     required this.basePrice,
-    required this.imgUrl, // <--- ADDED
+    required this.imgUrl,
+    required this.bundleItems, 
   }) : super(key: key);
 
   @override
@@ -502,9 +509,26 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
   String _selectedSugar = 'Less Sugar';
   String _selectedStrength = 'Normal';
   int _quantity = 1;
+  int _selectedBundleIndex = 0;
+  late List<BundleCartCustomization> _bundleCustomizations;
 
   final Color _activeGreen = const Color(0xFF8C9862);
   final Color _inactiveBorder = const Color(0xFFC3A358); 
+
+  @override
+  void initState() {
+    super.initState();
+
+    _bundleCustomizations = widget.bundleItems.map((item) {
+      return BundleCartCustomization(
+        menuId: item.menuId,
+        name: item.name,
+        iceLevel: 'Hot',
+        sugarLevel: 'Less Sugar',
+        coffeeStrength: 'Normal',
+      );
+    }).toList();
+  }
 
   String _formatPrice(int price) {
     final String priceStr = price.toString();
@@ -512,6 +536,25 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
       return 'Rp ${priceStr.substring(0, priceStr.length - 3)}.${priceStr.substring(priceStr.length - 3)}';
     }
     return 'Rp $priceStr';
+  }
+
+  void _updateSelectedBundleCustomization({
+    String? iceLevel,
+    String? sugarLevel,
+    String? coffeeStrength,
+  }) {
+    if (_bundleCustomizations.isEmpty) return;
+
+    final current = _bundleCustomizations[_selectedBundleIndex];
+    setState(() {
+      _bundleCustomizations[_selectedBundleIndex] = BundleCartCustomization(
+        menuId: current.menuId,
+        name: current.name,
+        iceLevel: iceLevel ?? current.iceLevel,
+        sugarLevel: sugarLevel ?? current.sugarLevel,
+        coffeeStrength: coffeeStrength ?? current.coffeeStrength,
+      );
+    });
   }
 
   @override
@@ -567,26 +610,75 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
                   ),
                   const SizedBox(height: 24),
 
-                  _buildSectionTitle('Ice Level'),
-                  _buildOptionsRow(
-                    options: ['Hot', 'Less Ice', 'Normal Ice'],
-                    selectedValue: _selectedIce,
-                    onSelect: (val) => setState(() => _selectedIce = val),
-                  ),
+                  if (widget.itemType == 'bundle' && _bundleCustomizations.isNotEmpty) ...[
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: _bundleCustomizations.asMap().entries.map((entry) {
+                        final index = entry.key;
+                        final item = entry.value;
+                        final isSelected = index == _selectedBundleIndex;
 
-                  _buildSectionTitle('Sugar Level'),
-                  _buildOptionsRow(
-                    options: ['No Sugar', 'Less Sugar', 'Normal Sugar'],
-                    selectedValue: _selectedSugar,
-                    onSelect: (val) => setState(() => _selectedSugar = val),
-                  ),
-
-                  _buildSectionTitle('Coffee Strength'),
-                  _buildOptionsRow(
-                    options: ['Normal', 'Strong'],
-                    selectedValue: _selectedStrength,
-                    onSelect: (val) => setState(() => _selectedStrength = val),
-                  ),
+                        return ChoiceChip(
+                          label: Text(item.name),
+                          selected: isSelected,
+                          selectedColor: _activeGreen,
+                          labelStyle: TextStyle(
+                            color: isSelected ? Colors.white : Colors.black87,
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                          ),
+                          onSelected: (_) {
+                            setState(() {
+                              _selectedBundleIndex = index;
+                            });
+                          },
+                        );
+                      }).toList(),
+                    ),
+                    const SizedBox(height: 20),
+                    Text(
+                      _bundleCustomizations[_selectedBundleIndex].name,
+                      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildSectionTitle('Ice Level'),
+                    _buildOptionsRow(
+                      options: ['Hot', 'Less Ice', 'Normal Ice'],
+                      selectedValue: _bundleCustomizations[_selectedBundleIndex].iceLevel,
+                      onSelect: (val) => _updateSelectedBundleCustomization(iceLevel: val),
+                    ),
+                    _buildSectionTitle('Sugar Level'),
+                    _buildOptionsRow(
+                      options: ['No Sugar', 'Less Sugar', 'Normal Sugar'],
+                      selectedValue: _bundleCustomizations[_selectedBundleIndex].sugarLevel,
+                      onSelect: (val) => _updateSelectedBundleCustomization(sugarLevel: val),
+                    ),
+                    _buildSectionTitle('Coffee Strength'),
+                    _buildOptionsRow(
+                      options: ['Normal', 'Strong'],
+                      selectedValue: _bundleCustomizations[_selectedBundleIndex].coffeeStrength,
+                      onSelect: (val) => _updateSelectedBundleCustomization(coffeeStrength: val),
+                    ),
+                  ] else ...[
+                    _buildSectionTitle('Ice Level'),
+                    _buildOptionsRow(
+                      options: ['Hot', 'Less Ice', 'Normal Ice'],
+                      selectedValue: _selectedIce,
+                      onSelect: (val) => setState(() => _selectedIce = val),
+                    ),
+                    _buildSectionTitle('Sugar Level'),
+                    _buildOptionsRow(
+                      options: ['No Sugar', 'Less Sugar', 'Normal Sugar'],
+                      selectedValue: _selectedSugar,
+                      onSelect: (val) => setState(() => _selectedSugar = val),
+                    ),
+                    _buildSectionTitle('Coffee Strength'),
+                    _buildOptionsRow(
+                      options: ['Normal', 'Strong'],
+                      selectedValue: _selectedStrength,
+                      onSelect: (val) => setState(() => _selectedStrength = val),
+                    ),
+                  ],
 
                   const SizedBox(height: 8),
                   const Divider(),
@@ -631,6 +723,7 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
                                 description: widget.itemDescription,
                                 price: widget.basePrice,
                                 imgUrl: widget.imgUrl, 
+                                bundleItems: widget.itemType == 'bundle' ? _bundleCustomizations : const [],
                                 quantity: _quantity,
                                 iceLevel: _selectedIce,
                                 sugarLevel: _selectedSugar,
@@ -672,6 +765,7 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
                               description: widget.itemDescription,
                               price: widget.basePrice,
                               imgUrl: widget.imgUrl, // <--- ADDED
+                              bundleItems: widget.itemType == 'bundle' ? _bundleCustomizations : const [],
                               quantity: _quantity,
                               iceLevel: _selectedIce,
                               sugarLevel: _selectedSugar,
