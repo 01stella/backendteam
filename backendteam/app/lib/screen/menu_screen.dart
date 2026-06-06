@@ -61,7 +61,16 @@ class _MenuScreenState extends State<MenuScreen> {
   }
 
   // Trigger the popup
-  void _showItemDetails(BuildContext context, int id, String name, String description, int basePrice, String? imgUrl) { 
+    void _showItemDetails(
+      BuildContext context,
+      String itemType,
+      int? menuId,
+      int? bundleId,
+      String name,
+      String description,
+      int basePrice,
+      String? imgUrl,
+    ) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -69,7 +78,9 @@ class _MenuScreenState extends State<MenuScreen> {
         return Padding(
           padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
           child: ItemDetailsBottomSheet(
-            menuId: id,
+            itemType: itemType,
+            menuId: menuId,
+            bundleId: bundleId,   
             itemName: name,
             itemDescription: description,
             basePrice: basePrice,
@@ -275,13 +286,16 @@ class _MenuScreenState extends State<MenuScreen> {
                               return Column(
                                 children: bundles.map((bundle) {
                                   // Reuse your beautifully designed card and pass the bundle data!
-                                  return _buildItemCard(
-                                    id: bundle.id,
+                                  return
+                                  _buildItemCard(
+                                    itemType: 'bundle',
+                                    menuId: null,
+                                    bundleId: bundle.id,
                                     name: bundle.name,
-                                    description: bundle.includedItems.join(" + "), // Shows "Americano + Espresso"
+                                    description: bundle.includedItems.join(" + "),
                                     price: bundle.price,
-                                    imgUrl: bundle.imageUrl, // Now the image actually loads!
-                                  );
+                                    imgUrl: bundle.imageUrl,
+                                  );  
                                 }).toList(),
                               );
                             },
@@ -302,8 +316,11 @@ class _MenuScreenState extends State<MenuScreen> {
                     return _buildCategorySection(
                       key: _categoryKeys[index],
                       title: catName,
-                      items: itemsInCat.map<Widget>((item) => _buildItemCard(
-                        id: item['menu_id'],
+                      items: itemsInCat.map<Widget>((item) =>
+                       _buildItemCard(
+                        itemType: 'menu',
+                        menuId: item['menu_id'],
+                        bundleId: null,
                         name: item['item_name'],
                         description: item['description'] ?? '',
                         price: int.parse(item['price'].toString().split('.')[0]),
@@ -356,11 +373,14 @@ class _MenuScreenState extends State<MenuScreen> {
   }
 
   Widget _buildItemCard({
-    required int id,
     required String name,
     required String description,
     required int price,
     required String? imgUrl,
+    required String itemType, // 'menu' or 'bundle'
+    required int? menuId,
+    required int? bundleId,
+    
   }) {
     const Color activeGreen = Color(0xFF8C9862);
 
@@ -406,7 +426,7 @@ class _MenuScreenState extends State<MenuScreen> {
               ),
             ),
             GestureDetector(
-              onTap: () => _showItemDetails(context, id, name, description, price, imgUrl),
+              onTap: () => _showItemDetails(context, itemType, menuId, bundleId, name, description, price, imgUrl),
               behavior: HitTestBehavior.opaque,
               child: Container(
                 alignment: Alignment.topRight,
@@ -454,7 +474,9 @@ class _MenuScreenState extends State<MenuScreen> {
 // Detailed Item Bottom Sheet (3/4 Screen Size)
 // ------------------------------------------------------------------------
 class ItemDetailsBottomSheet extends StatefulWidget {
-  final int menuId;
+  final String itemType;
+  final int? menuId;
+  final int? bundleId;
   final String itemName;
   final String itemDescription;
   final int basePrice;
@@ -462,7 +484,9 @@ class ItemDetailsBottomSheet extends StatefulWidget {
 
   const ItemDetailsBottomSheet({
     Key? key,
+    required this.itemType,
     required this.menuId,
+    required this.bundleId,
     required this.itemName,
     required this.itemDescription,
     required this.basePrice,
@@ -598,17 +622,21 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
                       Expanded(
                         child: OutlinedButton(
                           onPressed: () {
-                           CartService().addItem(CartItem(
-                              menuId: widget.menuId,
-                              name: widget.itemName,
-                              description: widget.itemDescription,
-                              price: widget.basePrice,
-                              imgUrl: widget.imgUrl, 
-                              quantity: _quantity,
-                              iceLevel: _selectedIce,
-                              sugarLevel: _selectedSugar,
-                              coffeeStrength: _selectedStrength,
-                            ));
+                           CartService().addItem(
+                              CartItem(
+                                itemType: widget.itemType,
+                                menuId: widget.menuId,
+                                bundleId: widget.bundleId,
+                                name: widget.itemName,
+                                description: widget.itemDescription,
+                                price: widget.basePrice,
+                                imgUrl: widget.imgUrl, 
+                                quantity: _quantity,
+                                iceLevel: _selectedIce,
+                                sugarLevel: _selectedSugar,
+                                coffeeStrength: _selectedStrength,
+                            ),
+                            );
 
                             Navigator.pop(context); 
                             ScaffoldMessenger.of(context).showSnackBar(
@@ -637,7 +665,9 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
                         child: ElevatedButton(
                           onPressed: () {
                             CartService().addItem(CartItem(
+                              itemType: widget.itemType,
                               menuId: widget.menuId,
+                              bundleId: widget.bundleId,
                               name: widget.itemName,
                               description: widget.itemDescription,
                               price: widget.basePrice,

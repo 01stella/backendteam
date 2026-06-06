@@ -11,7 +11,10 @@ class CartService {
 
   void addItem(CartItem newItem) {
     // Check if item is already in cart. If yes, just increase quantity.
-    var existingItem = items.where((i) => i.menuId == newItem.menuId).firstOrNull;
+    var existingItem = items.where((i) =>
+    i.itemType == newItem.itemType &&
+    i.menuId == newItem.menuId &&
+    i.bundleId == newItem.bundleId ).firstOrNull;
     
     if (existingItem != null) {
       existingItem.quantity += newItem.quantity;

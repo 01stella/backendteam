@@ -1,5 +1,7 @@
 class CartItem {
-  final int menuId; 
+  final String itemType; // 'menu' or 'bundle'
+  final int? menuId;
+  final int? bundleId;  
   final String name;
   final String description;
   final int price;
@@ -13,14 +15,18 @@ class CartItem {
   final String coffeeStrength;
 
   CartItem({
-    required this.menuId,
+    required this.itemType,
+    this.menuId,
+    this.bundleId,
+
     required this.name,
     required this.description,
     required this.price,
     required this.imgUrl,
+
     this.quantity = 1,
     this.isSelected = true,
-    // NEW: Require them in the constructor
+    
     required this.iceLevel,
     required this.sugarLevel,
     required this.coffeeStrength,

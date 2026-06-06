@@ -9,10 +9,30 @@ exports.calculateOrder = async (req, res, next) => {
 
     let subtotal = 0;
     for (let item of items) {
-      const [menuData] = await req.db.query('SELECT price FROM menu WHERE id = ?', [item.menu_id]);
-      if (!menuData || menuData.length === 0) throw new Error(`Menu item ${item.menu_id} not found`);
-      subtotal += Number(menuData[0].price) * Number(item.quantity);
-    }
+      if (item.item_type === 'bundle') {
+        const [bundleData] = await req.db.query(
+          'SELECT price FROM bundles WHERE id = ?',
+          [item.bundle_id]
+        );
+
+        if (!bundleData || bundleData.length === 0) {
+          throw new Error(`Bundle ${item.bundle_id} not found`);
+        }
+
+        subtotal += Number(bundleData[0].price) * Number(item.quantity);
+      } else {
+        const [menuData] = await req.db.query(
+          'SELECT price FROM menu WHERE id = ?',
+          [item.menu_id]
+        );
+
+        if (!menuData || menuData.length === 0) {
+          throw new Error(`Menu item ${item.menu_id} not found`);
+        }
+
+        subtotal += Number(menuData[0].price) * Number(item.quantity);
+      }
+          }
 
     // THE SINGLE SOURCE OF TRUTH FOR MATH
     const pb1 = subtotal * 0.10;
@@ -53,42 +73,92 @@ exports.createOrder = async (req, res, next) => {
     const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
     let subtotal = 0;
+
     for (let item of items) {
-      const [menuData] = await req.db.query('SELECT price FROM menu WHERE id = ?', [item.menu_id]);
-      if (!menuData || menuData.length === 0) throw new Error(`Menu item ${item.menu_id} not found`);
-      item.db_price = menuData[0].price;
+      if (item.item_type === 'bundle') {
+        const [bundleData] = await req.db.query(
+          'SELECT price FROM bundles WHERE id = ?',
+          [item.bundle_id]
+        );
+
+        if (!bundleData || bundleData.length === 0) {
+          throw new Error(`Bundle ${item.bundle_id} not found`);
+        }
+
+        item.db_price = bundleData[0].price;
+      } else {
+        const [menuData] = await req.db.query(
+          'SELECT price FROM menu WHERE id = ?',
+          [item.menu_id]
+        );
+
+        if (!menuData || menuData.length === 0) {
+          throw new Error(`Menu item ${item.menu_id} not found`);
+        }
+
+        item.db_price = menuData[0].price;
+      }
+
       subtotal += Number(item.db_price) * Number(item.quantity);
     }
 
-    // APPLY THE EXACT SAME MATH HERE TO CHARGE THE USER CORRECTLY
     const pb1 = subtotal * 0.10;
     const vat = subtotal * 0.11;
     const grandTotal = Math.round(subtotal + pb1 + vat);
 
-    // UPDATED INSERT STATEMENT to include the new columns
     const [orderResult] = await req.db.query(
       `INSERT INTO orders (customer_id, total, order_status, payment_method, payment_status, created_at, modified_at)
        VALUES (?, ?, ?, ?, 'unpaid', ?, ?)`,
       [customer_id, grandTotal, initialOrderStatus, payment_method, now, now]
     );
-    const newOrderId = orderResult.insertId; 
 
-   // Inside createOrder's for-loop...
+    const newOrderId = orderResult.insertId;
+
     for (let item of items) {
-      await req.db.query(
-        `INSERT INTO order_items (order_id, menu_id, quantity, ice_level, sugar_level, coffee_strength, item_price)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        [
-          newOrderId, 
-          item.menu_id, 
-          item.quantity, 
-          item.ice_level || 'Normal', 
-          item.sugar_level || 'Normal', 
-          item.coffee_strength || 'Normal', 
-          item.db_price
-        ]
-      );
+      if (item.item_type === 'bundle') {
+        const [bundleItems] = await req.db.query(
+          `SELECT menu_item_id
+           FROM bundle_items
+           WHERE bundle_id = ?`,
+          [item.bundle_id]
+        );
+
+        if (!bundleItems || bundleItems.length === 0) {
+          throw new Error(`Bundle ${item.bundle_id} has no items`);
+        }
+
+        for (const bundleItem of bundleItems) {
+          await req.db.query(
+            `INSERT INTO order_items (order_id, menu_id, quantity, ice_level, sugar_level, coffee_strength, item_price)
+             VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+              newOrderId,
+              bundleItem.menu_item_id,
+              item.quantity,
+              item.ice_level || 'Normal',
+              item.sugar_level || 'Normal',
+              item.coffee_strength || 'Normal',
+              0
+            ]
+          );
+        }
+      } else {
+        await req.db.query(
+          `INSERT INTO order_items (order_id, menu_id, quantity, ice_level, sugar_level, coffee_strength, item_price)
+           VALUES (?, ?, ?, ?, ?, ?, ?)`,
+          [
+            newOrderId,
+            item.menu_id,
+            item.quantity,
+            item.ice_level || 'Normal',
+            item.sugar_level || 'Normal',
+            item.coffee_strength || 'Normal',
+            item.db_price
+          ]
+        );
+      }
     }
+
     res.status(201).json({ success: true, message: 'Order created', order_id: newOrderId, total: grandTotal });
 
   } catch (error) {

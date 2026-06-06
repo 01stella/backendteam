@@ -1,6 +1,3 @@
-// backend/controllers/bundleController.js
-const db = require('../config/db'); // Adjust this path to wherever your MySQL connection pool is exported
-
 exports.getBundles = async (req, res) => {
   try {
     // We use GROUP_CONCAT to merge the multiple included items into a single string, 
@@ -11,16 +8,16 @@ exports.getBundles = async (req, res) => {
         b.name, 
         b.price, 
         b.image_url,
-        GROUP_CONCAT(mi.item_name SEPARATOR '||') as included_items
-      FROM bundles b
-      LEFT JOIN bundle_items bi ON b.id = bi.bundle_id
-      LEFT JOIN menu_items mi ON bi.menu_id = mi.id
-      GROUP BY b.id
-    `;
+        GROUP_CONCAT(m.item_name SEPARATOR '||') as included_items
+        FROM bundles b
+        LEFT JOIN bundle_items bi ON b.id = bi.bundle_id
+        LEFT JOIN menu m ON bi.menu_item_id = m.id
+        GROUP BY b.id, b.name, b.price, b.image_url
+        `;
+    
 
-    const [results] = await db.query(query);
+    const [results] = await req.db.query(query);
 
-    // Format the data to match exactly what bundle_model.dart expects
     const formattedBundles = results.map(row => {
       return {
         id: row.id,
