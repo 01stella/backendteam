@@ -1,16 +1,26 @@
 const express = require('express');
 const cors = require('cors');
+const http = require('http'); 
+const { Server } = require('socket.io');
 const multer = require('multer');
 const path = require('path');
 const mysql = require('mysql2/promise'); 
 const adminController = require('./controllers/adminController');
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    origin: '*', 
+    methods: ['GET', 'POST', 'PATCH']
+  }
+});
 
 // Notice: bundleRoutes import was removed from here to prevent conflicts!
 const orderRoutes = require('./routes/orderRoutes');
 const customerRoutes = require('./routes/customerRoutes');
 const bundleRoutes = require('./routes/bundleRoutes'); 
+const stationRoutes = require('./routes/stationRoutes');
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -38,6 +48,7 @@ const pool = mysql.createPool({
 
 app.use((req, res, next) => {
   req.db = pool;
+  req.io = io;
   next();
 });
 
@@ -69,7 +80,8 @@ app.get('/api/menu', async (req, res) => {
 app.use('/api/bundles', bundleRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/customers', customerRoutes);
+app.use('/api/station', stationRoutes);
 
-app.listen(port, () => {
-  console.log(`🚀 Server running at http://localhost:${port}`);
+server.listen(port, () => {
+  console.log(`🚀 Lumiora Backend is running on port ${port}`)
 });

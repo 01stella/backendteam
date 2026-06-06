@@ -207,7 +207,7 @@ exports.createOrder = async (req, res, next) => {
         );
       }
     }
-
+    req.io.emit('queue_updated');
     res.status(201).json({ success: true, message: 'Order created', order_id: newOrderId, total: grandTotal });
 
   } catch (error) {

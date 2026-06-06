@@ -1,13 +1,9 @@
-# Node dependencies (Never commit these!)
+# Node dependencies
 node_modules/
 npm-debug.log
 
-# Environment variables (CRITICAL: Never commit these!)
+# Environment variables
 .env
-
-# Build/Dist folders (if you add build tools later)
-dist/
-build/
 
 # IDE/Editor files
 .vscode/
