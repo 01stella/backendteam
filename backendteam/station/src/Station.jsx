@@ -45,7 +45,7 @@ const Station = () => {
 
   const handleProcess = async (itemId) => {
     try {
-      const response = await fetch(`http://${serverIp}:3000/api/station/pending/${stationCode}`);
+      const response = await fetch(`http://${serverIp}:3000/api/station/pending/${stationCode}`, {
         method: 'PATCH',
       });
       const data = await response.json();
