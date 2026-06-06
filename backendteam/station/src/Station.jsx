@@ -29,7 +29,7 @@ const Station = () => {
 
   const fetchPendingItems = async (stationCode) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/station/pending/${stationCode}`);
+      const response = await fetch(`http://${serverIp}:3000/api/station/pending/${stationCode}`);
       const data = await response.json();
       
       if (data.success) {
@@ -45,7 +45,7 @@ const Station = () => {
 
   const handleProcess = async (itemId) => {
     try {
-      const response = await fetch(`http://localhost:3000/api/station/process/${itemId}`, {
+      const response = await fetch(`http://${serverIp}:3000/api/station/pending/${stationCode}`);
         method: 'PATCH',
       });
       const data = await response.json();

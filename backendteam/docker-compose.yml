@@ -56,6 +56,7 @@ services:
       environment:
         - CHOKIDAR_USEPOLLING=true
         - PORT=5173 
+        - VITE_VM_IP=${VITE_VM_IP}
       volumes:
         - ./station:/app
         - /app/node_modules
