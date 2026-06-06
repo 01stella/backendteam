@@ -33,11 +33,8 @@ services:
     depends_on:
       lumiora-db:
         condition: service_healthy
-    environment:
-      DB_NAME: lumiora_db
-      DB_USER: root
-      DB_PASSWORD: ${DB_PASSWORD}
-      DB_HOST: lumiora-db
+    env_file:
+      - .env
     volumes:
       - ./cms:/app
   

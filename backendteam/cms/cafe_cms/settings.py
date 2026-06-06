@@ -30,8 +30,14 @@ SECRET_KEY = 'django-insecure-qgjo@9r*x^_$9j%l075$d&#1dqd0j=)^_5^7#3)e9+y-i412s3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = [env('DB_HOST'), 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = env.list('DJANGO_ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
 
+CSRF_TRUSTED_ORIGINS = [
+    'http://136.112.182.36:8000',
+    'http://136.112.182.36',
+    'http://localhost:8000',
+    'http://127.0.0.1:8000'
+]
 
 # Application definition
 
@@ -93,13 +99,14 @@ WSGI_APPLICATION = 'cafe_cms.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'lumiora_db',
+        'NAME': env('DB_NAME'),
         'USER': env('DB_USER'),
         'PASSWORD': env('DB_PASSWORD'),
         'HOST': env('DB_HOST'),
-        'PORT': '3306',
+        'PORT': env('DB_PORT', default='3306'),
     }
 }
+
 
 
 # Password validation
