@@ -11,7 +11,7 @@ services:
       - mysql_data:/var/lib/mysql
     # The crucial healthcheck that the backend and cms are waiting for!
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${DB_PASSWORD}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -33,6 +33,11 @@ services:
     depends_on:
       lumiora-db:
         condition: service_healthy
+    environment:
+      DB_NAME: lumiora_db
+      DB_USER: root
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_HOST: lumiora-db
     volumes:
       - ./cms:/app
   

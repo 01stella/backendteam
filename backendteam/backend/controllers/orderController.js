@@ -1,3 +1,40 @@
+// Get all orders
+exports.getAllOrders = async (req, res) => {
+  try {
+    const [orders] = await req.db.query(
+      `SELECT id, customer_id, total, order_status, payment_method, payment_status, created_at
+       FROM orders
+       ORDER BY created_at DESC`
+    );
+
+    for (let order of orders) {
+      const [items] = await req.db.query(
+        `SELECT oi.quantity, m.item_name, m.price, m.image_url
+         FROM order_items oi
+         JOIN menu m ON oi.menu_id = m.id
+         WHERE oi.order_id = ?`,
+        [order.id]
+      );
+
+      order.items = items;
+    }
+
+    res.status(200).json({
+      success: true,
+      data: orders
+    });
+  } catch (error) {
+    console.error("Fetch All Orders Error:", error);
+    res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+
+
+
 exports.calculateOrder = async (req, res, next) => {
   try {
     const { items } = req.body;
