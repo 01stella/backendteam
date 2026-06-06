@@ -1,7 +1,8 @@
-ARG VITE_VM_IP
-ENV VITE_VM_IP=$VITE_VM_IP
 # /station/Dockerfile
 FROM node:20-alpine
+
+ARG VITE_VM_IP
+ENV VITE_VM_IP=$VITE_VM_IP
 
 WORKDIR /app
 
