@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 // const { authenticate, adminOnly } = require('../middleware/auth');
 const {
-  getAllCustomers, getCustomerById, addCustomer, updateCustomer, deleteCustomer, loginCustomer
+  getAllCustomers, getCustomerById, addCustomer, updateCustomer, deleteCustomer, loginCustomer, getCustomerStamps
 } = require('../controllers/customerController');
 
 /**
@@ -62,6 +62,7 @@ const {
  */
 
 router.get('/', getAllCustomers);
+router.get('/:id/stamps', getCustomerStamps);
 router.get('/:id', getCustomerById);
 router.post('/register', addCustomer); // <--- Flutter will hit this!
 router.put('/:id', updateCustomer);

@@ -113,3 +113,27 @@ exports.loginCustomer = async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error during login' });
   }
 };
+
+// GET CUSTOMER STAMPS
+exports.getCustomerStamps = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [result] = await req.db.query(
+      `SELECT SUM(stamp_change) as total_stamps
+       FROM stamps
+       WHERE customer_id = ?`,
+      [id]
+    );
+
+    const totalStamps = result[0].total_stamps || 0;
+
+    res.status(200).json({
+      success: true,
+      total_stamps: parseInt(totalStamps, 10)
+    });
+  } catch (error) {
+    console.error("Fetch Stamps Error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
