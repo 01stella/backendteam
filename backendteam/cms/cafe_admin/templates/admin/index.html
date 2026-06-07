@@ -1,33 +1,54 @@
 {% extends "admin/index.html" %}
 
 {% block content %}
-    <div style="margin-bottom: 30px; padding: 20px; background: #1e1e1e; color: white; border-radius: 8px; border: 1px solid #444;">
-        <h2 style="color: #66b3ff; margin-top: 0; margin-bottom: 20px;">Live Cafe Metrics</h2>
-        
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-            
-            <div style="background: #2d2d2d; padding: 20px; border-radius: 6px; border-left: 4px solid #4CAF50;">
-                <p style="margin: 0; font-size: 12px; color: #aaa;">TOTAL SALES</p>
-                <h3 style="margin: 10px 0 0 0; font-size: 28px; color: white;">Rp {{ total_sales }}</h3>
-            </div>
+<style>
+    /* Expand content area safely without breaking the sidebar */
+    .content {
+        max-width: 95% !important;
+    }
 
-            <div style="background: #2d2d2d; padding: 20px; border-radius: 6px; border-left: 4px solid #2196F3;">
-                <p style="margin: 0; font-size: 12px; color: #aaa; text-transform: uppercase; letter-spacing: 1px;">Items Sold</p>
-                <h3 style="margin: 10px 0 0 0; font-size: 28px; color: white;">142</h3>
-            </div>
+    /* Properly space and contain the metrics wrapper */
+    #cafe-metrics-wrapper {
+        background: #1e1e1e;
+        padding: 25px;
+        border-radius: 8px;
+        border: 1px solid #444;
+        margin-bottom: 40px; /* Adds the spacing you wanted */
+        width: 100%;
+        box-sizing: border-box;
+    }
+</style>
 
-            <div style="background: #2d2d2d; padding: 20px; border-radius: 6px; border-left: 4px solid #FF9800;">
-                <p style="margin: 0; font-size: 12px; color: #aaa;">TOTAL ORDERS</p>
-                <h3 style="margin: 10px 0 0 0; font-size: 28px; color: white;">{{ total_orders }}</h3>
-            </div>
+<div id="cafe-metrics-wrapper">
+    
+    <h2 style="color: #66b3ff; margin-top: 0; margin-bottom: 20px;">Live Cafe Metrics</h2>
+    
+    <!-- Grid container using 100% width -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; width: 100%;">
 
-            <div style="background: #2d2d2d; padding: 20px; border-radius: 6px; border-left: 4px solid #9C27B0;">
-                <p style="margin: 0; font-size: 12px; color: #aaa;">TOTAL CUSTOMERS</p>
-                <h3 style="margin: 10px 0 0 0; font-size: 28px; color: white;">{{ total_customers }}</h3>
-            </div>
-
+        <!-- Cards -->
+        <div style="background: #332d2a; padding: 25px; border-radius: 8px;">
+            <p style="margin: 0; font-size: 11px; color: #d4b499; text-transform: uppercase;">Total Revenue</p>
+            <h3 style="margin: 8px 0 0 0; font-size: 24px; color: #f4d0a6;">Rp {{ total_sales }}</h3>
         </div>
-    </div>
 
-    {{ block.super }}
+        <div style="background: #332d33; padding: 25px; border-radius: 8px;">
+            <p style="margin: 0; font-size: 11px; color: #c9a3c9; text-transform: uppercase;">Items Sold</p>
+            <h3 style="margin: 8px 0 0 0; font-size: 24px; color: #efd4ef;">{{ total_items_sold }}</h3>
+        </div>
+
+        <div style="background: #2d332d; padding: 25px; border-radius: 8px;">
+            <p style="margin: 0; font-size: 11px; color: #a3c9a3; text-transform: uppercase;">Total Orders</p>
+            <h3 style="margin: 8px 0 0 0; font-size: 24px; color: #d4efd4;">{{ total_orders }}</h3>
+        </div>
+
+        <div style="background: #2d3133; padding: 25px; border-radius: 8px;">
+            <p style="margin: 0; font-size: 11px; color: #a3c2c9; text-transform: uppercase;">Total Customers</p>
+            <h3 style="margin: 8px 0 0 0; font-size: 24px; color: #d4eaf0;">{{ total_customers }}</h3>
+        </div>
+
+    </div>
+</div>
+
+{{ block.super }}
 {% endblock %}

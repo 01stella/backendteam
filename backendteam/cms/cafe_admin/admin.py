@@ -10,6 +10,8 @@ class CafeAdminSite(admin.AdminSite):
         extra_context['total_sales'] = Orders.objects.aggregate(total=Sum('total'))['total'] or 0
         extra_context['total_orders'] = Orders.objects.count()
         extra_context['total_customers'] = Customer.objects.count()
+
+        extra_context['total_items_sold'] = OrderItems.objects.aggregate(total=Sum('quantity'))['total'] or 0
         return super().index(request, extra_context=extra_context)
 
 admin_site = CafeAdminSite(name='cafe_admin')
