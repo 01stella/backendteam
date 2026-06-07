@@ -4,8 +4,11 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 
 class ApiService {
-  // Replace this with your actual backend URL later (e.g., your GCP link or local IP)
-  static const String baseUrl = 'http://136.112.182.36:3000/api';
+  // Hardcoded for sanity. Update this if the VM IP changes!
+  static const String serverIp = '104.155.162.70';
+  
+  // Stitched together dynamically
+  static const String baseUrl = 'http://$serverIp:3000/api';
   
   // 1. Fetch Menu Items
   static Future<List<dynamic>> fetchMenu() async {
