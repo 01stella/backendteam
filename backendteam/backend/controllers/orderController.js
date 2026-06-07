@@ -1,3 +1,28 @@
+async function awardStampForPaidOrder(db, orderId) {
+  const [orders] = await db.query(
+    `SELECT id, customer_id
+     FROM orders
+     WHERE id = ?`,
+    [orderId]
+  );
+
+  if (!orders.length || !orders[0].customer_id) {
+    return false;
+  }
+
+  const [result] = await db.query(
+    `INSERT IGNORE INTO stamps (customer_id, order_id, stamp_change, description)
+     VALUES (?, ?, 1, ?)`,
+    [
+      orders[0].customer_id,
+      orderId,
+      `Stamp earned from order #${orderId}`
+    ]
+  );
+
+  return result.affectedRows > 0;
+}
+
 // Get all orders
 exports.getAllOrders = async (req, res) => {
   try {
@@ -239,7 +264,12 @@ exports.verifyPayment = async (req, res) => {
       `UPDATE orders SET payment_status = 'paid', order_status = 'processing' WHERE id = ?`,
       [id]
     );
-    res.json({ success: true, message: 'Payment verified! Order sent to kitchen.' });
+    const stampAwarded = await awardStampForPaidOrder(req.db, id);
+    res.json({
+      success: true,
+      message: 'Payment verified! Order sent to kitchen.',
+      stamp_awarded: stampAwarded
+    });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
   }

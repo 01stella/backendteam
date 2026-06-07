@@ -36,7 +36,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   final Color primaryGreen = const Color(0xFF7B8C2A);
   final Color lightGreenCard = const Color(0xFFDCE2B9);
   final Color darkGrey = const Color(0xFF4A4D4A);
@@ -50,7 +50,21 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _loadUserData();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      _loadUserData();
+    }
   }
 
   // --- FETCH USER & STAMPS ---
@@ -232,10 +246,11 @@ class _HomeScreenState extends State<HomeScreen> {
         // --- PICK UP BUTTON ---
         Expanded(
           child: GestureDetector(
-            onTap: () {
+            onTap: () async {
               // Set memory to pickup and navigate
               CartService().fulfillmentType = 'pickup';
-              Navigator.pushNamed(context, '/menu');
+              await Navigator.pushNamed(context, '/menu');
+              if (mounted) _loadUserData();
             },
             child: Container(
               height: 110,
@@ -259,10 +274,11 @@ class _HomeScreenState extends State<HomeScreen> {
         // --- DELIVERY BUTTON ---
         Expanded(
           child: GestureDetector(
-            onTap: () {
+            onTap: () async {
               // Set memory to delivery and navigate
               CartService().fulfillmentType = 'delivery';
-              Navigator.pushNamed(context, '/menu');
+              await Navigator.pushNamed(context, '/menu');
+              if (mounted) _loadUserData();
             },
             child: Container(
               height: 110,
