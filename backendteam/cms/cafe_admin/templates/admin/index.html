@@ -2,51 +2,65 @@
 
 {% block content %}
 <style>
-    /* Expand content area safely without breaking the sidebar */
-    .content {
-        max-width: 95% !important;
-    }
+    .content { max-width: 95% !important; }
 
-    /* Properly space and contain the metrics wrapper */
     #cafe-metrics-wrapper {
         background: #1e1e1e;
-        padding: 25px;
+        padding: 20px; /* Reduced padding */
         border-radius: 8px;
         border: 1px solid #444;
-        margin-bottom: 40px; /* Adds the spacing you wanted */
+        margin-bottom: 30px; /* Tightened margin */
         width: 100%;
         box-sizing: border-box;
+    }
+
+    /* Compact card style */
+    .metric-card {
+        padding: 15px !important; /* Smaller footprint */
+        border-radius: 6px;
     }
 </style>
 
 <div id="cafe-metrics-wrapper">
+    <h2 style="color: #66b3ff; margin: 0 0 15px 0; font-size: 18px;">Live Cafe Metrics</h2>
     
-    <h2 style="color: #66b3ff; margin-top: 0; margin-bottom: 20px;">Live Cafe Metrics</h2>
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%;">
+
+        <div class="metric-card" style="background: #332d2a;">
+            <p style="margin: 0; font-size: 9px; color: #d4b499; text-transform: uppercase;">Revenue</p>
+            <h3 style="margin: 4px 0 0 0; font-size: 16px; color: #f4d0a6;">Rp {{ total_sales }}</h3>
+        </div>
+
+        <div class="metric-card" style="background: #332d33;">
+            <p style="margin: 0; font-size: 9px; color: #c9a3c9; text-transform: uppercase;">Items</p>
+            <h3 style="margin: 4px 0 0 0; font-size: 16px; color: #efd4ef;">{{ total_items_sold }}</h3>
+        </div>
+
+        <div class="metric-card" style="background: #2d332d;">
+            <p style="margin: 0; font-size: 9px; color: #a3c9a3; text-transform: uppercase;">Orders</p>
+            <h3 style="margin: 4px 0 0 0; font-size: 16px; color: #d4efd4;">{{ total_orders }}</h3>
+        </div>
+
+        <div class="metric-card" style="background: #2d3133;">
+            <p style="margin: 0; font-size: 9px; color: #a3c2c9; text-transform: uppercase;">Customers</p>
+            <h3 style="margin: 4px 0 0 0; font-size: 16px; color: #d4eaf0;">{{ total_customers }}</h3>
+        </div>
     
-    <!-- Grid container using 100% width -->
-    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; width: 100%;">
+    </div>
 
-        <!-- Cards -->
-        <div style="background: #332d2a; padding: 25px; border-radius: 8px;">
-            <p style="margin: 0; font-size: 11px; color: #d4b499; text-transform: uppercase;">Total Revenue</p>
-            <h3 style="margin: 8px 0 0 0; font-size: 24px; color: #f4d0a6;">Rp {{ total_sales }}</h3>
+        <div id="report-container" style="width: 100%; margin-top: 20px;">
+        <h2 style="color: #66b3ff;">Detailed Analytics</h2>
+        <div style="width: 100%; height: 350px; background: #1e1e1e; border-radius: 8px; overflow: hidden;">
+            <iframe 
+                width="100%" 
+                height="100%" 
+                src="https://datastudio.google.com/embed/reporting/dc41e4c1-a399-4e52-9220-4768eaa3acff/page/QLR0F" 
+                frameborder="0" 
+                style="border:0" 
+                allowfullscreen 
+                sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox">
+            </iframe>
         </div>
-
-        <div style="background: #332d33; padding: 25px; border-radius: 8px;">
-            <p style="margin: 0; font-size: 11px; color: #c9a3c9; text-transform: uppercase;">Items Sold</p>
-            <h3 style="margin: 8px 0 0 0; font-size: 24px; color: #efd4ef;">{{ total_items_sold }}</h3>
-        </div>
-
-        <div style="background: #2d332d; padding: 25px; border-radius: 8px;">
-            <p style="margin: 0; font-size: 11px; color: #a3c9a3; text-transform: uppercase;">Total Orders</p>
-            <h3 style="margin: 8px 0 0 0; font-size: 24px; color: #d4efd4;">{{ total_orders }}</h3>
-        </div>
-
-        <div style="background: #2d3133; padding: 25px; border-radius: 8px;">
-            <p style="margin: 0; font-size: 11px; color: #a3c2c9; text-transform: uppercase;">Total Customers</p>
-            <h3 style="margin: 8px 0 0 0; font-size: 24px; color: #d4eaf0;">{{ total_customers }}</h3>
-        </div>
-
     </div>
 </div>
 
