@@ -45,6 +45,24 @@ services:
         condition: service_healthy
     environment:
       - DB_PASSWORD=${DB_PASSWORD}
-      
+
+  station:
+      build:
+        context: ./station
+        dockerfile: Dockerfile
+      container_name: lumiora-station
+      ports:
+        - "5173:5173"
+      environment:
+        - CHOKIDAR_USEPOLLING=true
+        - PORT=5173 
+        - VITE_VM_IP=${VITE_VM_IP}
+      volumes:
+        - ./station:/app
+        - /app/node_modules
+      command: sh -c "npm install && npm run dev -- --host" 
+      depends_on:
+        - backend
+
 volumes:
   mysql_data:
