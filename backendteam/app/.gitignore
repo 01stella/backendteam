@@ -65,3 +65,22 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+
+# Generated Flutter launcher icons
+ios/Runner/Assets.xcassets/AppIcon.appiconset/*.png
+ios/Runner/Assets.xcassets/AppIcon.appiconset/Contents.json
+
+# Ignore generated app icons (Android and iOS)
+# iOS generated files - ignored because this project targets Android only
+# Ignore auto-generated Android assets
+backendteam/app/android/app/src/main/res/mipmap-*/launcher_icon.png
+backendteam/app/android/app/src/main/res/drawable-*/splash.png
+backendteam/app/android/app/src/main/res/drawable-*/background.png
+
+# Ignore auto-generated iOS launch assets
+backendteam/app/ios/Runner/Assets.xcassets/LaunchImage.imageset/*.png
+backendteam/app/ios/Runner/Assets.xcassets/LaunchImage.imageset/Contents.json
+
+# Ignore generated web splash assets
+backendteam/app/web/splash/img/*.png
