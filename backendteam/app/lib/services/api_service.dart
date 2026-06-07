@@ -5,13 +5,13 @@ import 'package:flutter/foundation.dart';
 
 class ApiService {
   static const String serverIp = String.fromEnvironment(
-    'VM_IP', 
-    defaultValue: 'localhost' // Fallback just in case
+    'VM_IP',
+    defaultValue: 'localhost', // Fallback just in case
   );
-  
+
   // Stitched together dynamically
   static const String baseUrl = 'http://$serverIp:3000/api';
-  
+
   // 1. Fetch Menu Items
   static Future<List<dynamic>> fetchMenu() async {
     try {
@@ -31,9 +31,13 @@ class ApiService {
 
   // 2. Create the Order (Sending the Cart Array)
   static Future<Map<String, dynamic>?> createOrder({
-    required int customerId, 
-    String? paymentMethod, 
-    required List<Map<String, dynamic>> items
+    required int customerId,
+    String? paymentMethod,
+    required List<Map<String, dynamic>> items,
+    required String fulfillmentType,
+    String? pickupTime,
+    String? deliveryFloor,
+    String? deliveryRoom,
   }) async {
     try {
       final response = await http.post(
@@ -41,8 +45,12 @@ class ApiService {
         headers: {"Content-Type": "application/json"},
         body: jsonEncode({
           "customer_id": customerId,
-          "payment_method": paymentMethod ?? "cashier", 
+          "payment_method": paymentMethod ?? "cashier",
           "items": items,
+          "fulfillment_type": fulfillmentType,
+          "pickup_time": pickupTime,
+          "delivery_floor": deliveryFloor,
+          "delivery_room": deliveryRoom,
         }),
       );
 
@@ -63,7 +71,7 @@ class ApiService {
     try {
       // CHANGED THE URL HERE:
       final response = await http.put(
-        Uri.parse('$baseUrl/orders/$orderId/verify-payment'), 
+        Uri.parse('$baseUrl/orders/$orderId/verify-payment'),
         headers: {"Content-Type": "application/json"},
       );
 
@@ -78,8 +86,11 @@ class ApiService {
       return false;
     }
   }
+
   // 3. Calculate Order
-  static Future<Map<String, dynamic>?> calculateOrder(List<Map<String, dynamic>> items) async {
+  static Future<Map<String, dynamic>?> calculateOrder(
+    List<Map<String, dynamic>> items,
+  ) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/orders/calculate'),
@@ -88,7 +99,9 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        return jsonDecode(response.body)['data']; // Returns {subtotal, pb1, vat, total}
+        return jsonDecode(
+          response.body,
+        )['data']; // Returns {subtotal, pb1, vat, total}
       } else {
         print('Failed to calculate: ${response.body}');
         return null;
@@ -109,10 +122,7 @@ class ApiService {
 
       // Attach the image file
       request.files.add(
-        await http.MultipartFile.fromPath(
-          'receipt_image',
-          imageFile.path,
-        ),
+        await http.MultipartFile.fromPath('receipt_image', imageFile.path),
       );
 
       var streamedResponse = await request.send();
@@ -156,7 +166,7 @@ class ApiService {
         }),
       );
 
-      // We use jsonDecode here because your Node backend sends a JSON response 
+      // We use jsonDecode here because your Node backend sends a JSON response
       // (like { success: true, message: '...' })
       return jsonDecode(response.body);
     } catch (e) {
@@ -171,12 +181,9 @@ class ApiService {
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/customers/login'), 
+        Uri.parse('$baseUrl/customers/login'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
+        body: jsonEncode({'email': email, 'password': password}),
       );
 
       return jsonDecode(response.body);
@@ -202,6 +209,24 @@ class ApiService {
     } catch (e) {
       debugPrint("Error fetching history: $e");
       return null;
+    }
+  }
+
+  static Future<int> fetchCustomerStamps(int customerId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/customers/$customerId/stamps'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['total_stamps'] ?? 0;
+      } else {
+        return 0;
+      }
+    } catch (e) {
+      debugPrint("Error fetching stamps: $e");
+      return 0;
     }
   }
 }
