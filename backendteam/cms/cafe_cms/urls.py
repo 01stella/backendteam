@@ -16,9 +16,8 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from cafe_admin.views import dashboard_view
+from cafe_admin.admin import admin_site
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('dashboard/', dashboard_view, name='dashboard')
+    path('admin/', admin_site.urls),
 ]
