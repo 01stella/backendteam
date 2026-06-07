@@ -28,13 +28,13 @@ exports.addCustomer = async (req, res) => {
 
     // Validate
     if (!full_name || !phone_number || !email || !password) {
-      return res.status(400).json({ message: 'Missing required fields' });
+      return res.status(400).json({ success: false, message: 'Missing required fields' });
     }
 
     // Check if email already exists
     const [existing] = await req.db.query('SELECT id FROM customer WHERE email = ?', [email]);
     if (existing.length > 0) {
-      return res.status(409).json({ message: 'Email already registered' });
+      return res.status(409).json({ success: false, message: 'Email already registered' });
     }
 
     // Hash the password
@@ -47,7 +47,11 @@ exports.addCustomer = async (req, res) => {
       [full_name, phone_number, email, birthday || null, hashed_password]
     );
 
-    res.status(201).json({ message: 'Customer created successfully', id: result.insertId });
+    res.status(201).json({
+      success: true,
+      message: 'Customer created successfully',
+      id: result.insertId
+    });
   } catch (error) {
     console.error("Registration Error:", error);
     res.status(500).json({ message: 'Server error during registration', error });
@@ -111,5 +115,32 @@ exports.loginCustomer = async (req, res) => {
   } catch (error) {
     console.error("Login Error:", error);
     res.status(500).json({ success: false, message: 'Server error during login' });
+  }
+};
+
+// GET CUSTOMER STAMPS
+exports.getCustomerStamps = async (req, res) => {
+  try {
+    const { id } = req.params; // This is the customer_id
+    
+    // We use SUM() to add up all the 'stamp_change' values
+    const [result] = await req.db.query(
+      `SELECT SUM(stamp_change) as total_stamps 
+       FROM stamps 
+       WHERE customer_id = ?`,
+      [id]
+    );
+
+    // If they have no stamps, SQL returns null, so we default to 0
+    const totalStamps = result[0].total_stamps || 0;
+
+    res.status(200).json({ 
+      success: true, 
+      total_stamps: parseInt(totalStamps, 10) 
+    });
+
+  } catch (error) {
+    console.error("Fetch Stamps Error:", error);
+    res.status(500).json({ success: false, message: error.message });
   }
 };

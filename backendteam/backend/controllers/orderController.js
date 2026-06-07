@@ -1,3 +1,43 @@
+
+// --- STAMP LOGIC HELPER ---
+const checkAndAwardStamp = async (req, customer_id, order_id, grandTotal) => {
+  try {
+    // Rule 1: Must be Rp 50.000 or above
+    if (grandTotal < 50000) {
+      console.log(`[Stamp System] Order ${order_id} total is ${grandTotal}. No stamp awarded.`);
+      return false; 
+    }
+
+    // Rule 2: Max 1 stamp per day per customer.
+    const [existingStamps] = await req.db.query(
+      `SELECT id FROM stamps 
+       WHERE customer_id = ? 
+       AND DATE(created_at) = CURDATE() 
+       AND stamp_change > 0`,
+      [customer_id]
+    );
+
+    if (existingStamps.length > 0) {
+      console.log(`[Stamp System] Customer ${customer_id} already got a stamp today.`);
+      return false;
+    }
+
+    // Pass both rules? Award the stamp!
+    await req.db.query(
+      `INSERT INTO stamps (customer_id, order_id, stamp_change, description)
+       VALUES (?, ?, 1, 'Daily stamp for order >= 50k')`,
+      [customer_id, order_id]
+    );
+
+    console.log(`[Stamp System] SUCCESS! 1 Stamp awarded to Customer ${customer_id}.`);
+    return true;
+
+  } catch (error) {
+    console.error("[Stamp System] Error:", error);
+    return false;
+  }
+};
+
 // Get all orders
 exports.getAllOrders = async (req, res) => {
   try {
@@ -31,8 +71,6 @@ exports.getAllOrders = async (req, res) => {
     });
   }
 };
-
-
 
 
 exports.calculateOrder = async (req, res, next) => {
@@ -207,14 +245,23 @@ exports.createOrder = async (req, res, next) => {
         );
       }
     }
+  await checkAndAwardStamp(req, customer_id, newOrderId, grandTotal);
+
+    // Tell the barista screen to update
     req.io.emit('queue_updated');
-    res.status(201).json({ success: true, message: 'Order created', order_id: newOrderId, total: grandTotal });
+    
+    // Send success back to Flutter
+    res.status(201).json({ 
+      success: true, 
+      message: 'Order created', 
+      order_id: newOrderId, 
+      total: grandTotal 
+    });
 
   } catch (error) {
     console.error("❌ Controller Error:", error);
     res.status(500).json({ success: false, message: error.message });
   }
-
 };
 
 // 3. NEW: Called by the FLUTTER APP when the customer clicks "I Have Transferred"
