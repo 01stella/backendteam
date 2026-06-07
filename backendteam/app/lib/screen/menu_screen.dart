@@ -69,6 +69,7 @@ class _MenuScreenState extends State<MenuScreen> {
   void _showItemDetails(
     BuildContext context,
     String itemType,
+    String categoryName,
     int? menuId,
     int? bundleId,
     String name,
@@ -87,6 +88,7 @@ class _MenuScreenState extends State<MenuScreen> {
           ),
           child: ItemDetailsBottomSheet(
             itemType: itemType,
+            categoryName: categoryName,
             menuId: menuId,
             bundleId: bundleId,
             bundleItems: bundleItems,
@@ -332,6 +334,7 @@ class _MenuScreenState extends State<MenuScreen> {
                                   // Reuse your beautifully designed card and pass the bundle data!
                                   return _buildItemCard(
                                     itemType: 'bundle',
+                                    categoryName: 'Special Bundle',
                                     menuId: null,
                                     bundleId: bundle.id,
                                     name: bundle.name,
@@ -366,6 +369,7 @@ class _MenuScreenState extends State<MenuScreen> {
                         .map<Widget>(
                           (item) => _buildItemCard(
                             itemType: 'menu',
+                            categoryName: catName,
                             menuId: item['menu_id'],
                             bundleId: null,
                             bundleItems: const [],
@@ -445,6 +449,7 @@ class _MenuScreenState extends State<MenuScreen> {
     required int price,
     required String? imgUrl,
     required String itemType, // 'menu' or 'bundle'
+    required String categoryName,
     required int? menuId,
     required int? bundleId,
     required List<BundleIncludedItem> bundleItems,
@@ -521,6 +526,7 @@ class _MenuScreenState extends State<MenuScreen> {
               onTap: () => _showItemDetails(
                 context,
                 itemType,
+                categoryName,
                 menuId,
                 bundleId,
                 name,
@@ -595,6 +601,7 @@ class _MenuScreenState extends State<MenuScreen> {
 // ------------------------------------------------------------------------
 class ItemDetailsBottomSheet extends StatefulWidget {
   final String itemType;
+  final String categoryName;
   final int? menuId;
   final int? bundleId;
   final String itemName;
@@ -606,6 +613,7 @@ class ItemDetailsBottomSheet extends StatefulWidget {
   const ItemDetailsBottomSheet({
     Key? key,
     required this.itemType,
+    required this.categoryName,
     required this.menuId,
     required this.bundleId,
     required this.itemName,
@@ -631,6 +639,8 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
   final Color _inactiveBorder = const Color(0xFFC3A358);
 
   bool get _isBundle => widget.itemType == 'bundle';
+  bool get _needsCustomization =>
+      _isBundle || widget.categoryName != 'Pastry & Bakery';
 
   @override
   void initState() {
@@ -692,7 +702,7 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
     // 2. Not logged in? Show the WelcomeBottomSheet!
     if (user == null) {
       if (!context.mounted) return;
-      
+
       // We await the bottom sheet to see if they logged in successfully
       final loginResult = await showModalBottomSheet(
         context: context,
@@ -703,16 +713,16 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
             padding: EdgeInsets.only(
               bottom: MediaQuery.of(context).viewInsets.bottom,
             ),
-            // YOU MUST IMPORT THIS WIDGET AT THE TOP OF MENU_SCREEN.DART 
+            // YOU MUST IMPORT THIS WIDGET AT THE TOP OF MENU_SCREEN.DART
             // import '../widgets/welcome_bottom_sheet.dart';
-            child: const WelcomeBottomSheet(), 
+            child: const WelcomeBottomSheet(),
           );
         },
       );
 
       // If they closed the sheet without logging in, stop here.
       if (loginResult == null) return;
-      
+
       // If we reach here, they logged in! Proceed with adding to cart.
     }
 
@@ -748,7 +758,9 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
           backgroundColor: const Color(0xFF8C9862),
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
     }
@@ -814,44 +826,42 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
                   ),
                   const SizedBox(height: 24),
 
-                  if (_isBundle && _bundleCustomizations.isNotEmpty) ...[
-                    _buildSectionTitle('Customize Item'),
-                    _buildBundleSelector(),
+                  if (_needsCustomization) ...[
+                    if (_isBundle && _bundleCustomizations.isNotEmpty) ...[
+                      _buildSectionTitle('Customize Item'),
+                      _buildBundleSelector(),
+                    ],
+                    _buildSectionTitle('Ice Level'),
+                    _buildOptionsRow(
+                      options: ['Hot', 'Less Ice', 'Normal Ice'],
+                      selectedValue: _selectedIce,
+                      onSelect: (val) => setState(() {
+                        _selectedIce = val;
+                        _updateSelectedCustomization(iceLevel: val);
+                      }),
+                    ),
+                    _buildSectionTitle('Sugar Level'),
+                    _buildOptionsRow(
+                      options: ['No Sugar', 'Less Sugar', 'Normal Sugar'],
+                      selectedValue: _selectedSugar,
+                      onSelect: (val) => setState(() {
+                        _selectedSugar = val;
+                        _updateSelectedCustomization(sugarLevel: val);
+                      }),
+                    ),
+                    _buildSectionTitle('Coffee Strength'),
+                    _buildOptionsRow(
+                      options: ['Normal', 'Strong'],
+                      selectedValue: _selectedStrength,
+                      onSelect: (val) => setState(() {
+                        _selectedStrength = val;
+                        _updateSelectedCustomization(coffeeStrength: val);
+                      }),
+                    ),
+                    const SizedBox(height: 8),
+                    const Divider(),
+                    const SizedBox(height: 16),
                   ],
-
-                  _buildSectionTitle('Ice Level'),
-                  _buildOptionsRow(
-                    options: ['Hot', 'Less Ice', 'Normal Ice'],
-                    selectedValue: _selectedIce,
-                    onSelect: (val) => setState(() {
-                      _selectedIce = val;
-                      _updateSelectedCustomization(iceLevel: val);
-                    }),
-                  ),
-
-                  _buildSectionTitle('Sugar Level'),
-                  _buildOptionsRow(
-                    options: ['No Sugar', 'Less Sugar', 'Normal Sugar'],
-                    selectedValue: _selectedSugar,
-                    onSelect: (val) => setState(() {
-                      _selectedSugar = val;
-                      _updateSelectedCustomization(sugarLevel: val);
-                    }),
-                  ),
-
-                  _buildSectionTitle('Coffee Strength'),
-                  _buildOptionsRow(
-                    options: ['Normal', 'Strong'],
-                    selectedValue: _selectedStrength,
-                    onSelect: (val) => setState(() {
-                      _selectedStrength = val;
-                      _updateSelectedCustomization(coffeeStrength: val);
-                    }),
-                  ),
-
-                  const SizedBox(height: 8),
-                  const Divider(),
-                  const SizedBox(height: 16),
 
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -912,7 +922,7 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
                         ),
                       ),
                       const SizedBox(width: 12),
-                      
+
                       // --- UPDATED CHECK OUT BUTTON ---
                       Expanded(
                         child: ElevatedButton(
