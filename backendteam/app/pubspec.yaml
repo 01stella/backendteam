@@ -44,7 +44,6 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_launcher_icons: ^0.13.1
-  flutter_native_splash: ^2.4.0
 
 
   # The "flutter_lints" package below contains a set of recommended lints to
@@ -69,7 +68,6 @@ flutter:
   - assets/cafeqrcode.png
   - assets/cafelogo.png
   - assets/lumioralogo.png
-  - assets/splash_logo.png
 
 
   # To add assets to your application, add an assets section, like this:
@@ -107,9 +105,3 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/lumioralogo.png" 
   min_sdk_android: 21
-
-flutter_native_splash:
-  color: "#F3EFE6"
-  image: assets/splash_logo.png
-  android_gravity: fill
-  ios_content_mode: scaleAspectFill

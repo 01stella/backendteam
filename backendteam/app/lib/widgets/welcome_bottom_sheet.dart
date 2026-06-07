@@ -409,7 +409,7 @@ class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
     );
   }
 
-  Widget _socialButton(IconData icon) {
+  Widget _socialButton(FaIconData icon) {
     return Container(
       width: 44, height: 44,
       decoration: const BoxDecoration(color: lightGrey, shape: BoxShape.circle),
