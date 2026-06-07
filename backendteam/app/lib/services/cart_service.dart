@@ -9,13 +9,21 @@ class CartService {
   // The actual cart data
   List<CartItem> items = [];
 
+  // --- NEW: The Memory Variable ---
+  // This stores either 'pickup' or 'delivery'. We default to 'pickup'.
+  String fulfillmentType = 'pickup';
+
   void addItem(CartItem newItem) {
     // Check if item is already in cart. If yes, just increase quantity.
-    var existingItem = items.where((i) =>
-    i.itemType == newItem.itemType &&
-    i.menuId == newItem.menuId &&
-    i.bundleId == newItem.bundleId ).firstOrNull;
-    
+    var existingItem = items
+        .where(
+          (i) =>
+              i.itemType == newItem.itemType &&
+              i.menuId == newItem.menuId &&
+              i.bundleId == newItem.bundleId,
+        )
+        .firstOrNull;
+
     if (existingItem != null) {
       existingItem.quantity += newItem.quantity;
     } else {
@@ -25,5 +33,6 @@ class CartService {
 
   void clearCart() {
     items.clear();
+    fulfillmentType = 'pickup'; // Reset to default when the cart is cleared
   }
 }

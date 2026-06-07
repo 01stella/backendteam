@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import '../widgets/custom_bottom_navbar.dart'; 
-import '../widgets/welcome_bottom_sheet.dart'; 
+import '../widgets/custom_bottom_navbar.dart';
+import '../widgets/welcome_bottom_sheet.dart';
 import '../services/auth_service.dart'; // <--- Added the auth service import!
+import '../services/api_service.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({Key? key}) : super(key: key);
@@ -13,6 +14,7 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   // --- STATE ---
   String? _loggedInUserName; // Null means not logged in!
+  int _stampCount = 0;
 
   // --- NEW: Check storage when the screen loads ---
   @override
@@ -24,8 +26,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Future<void> _checkSavedSession() async {
     final user = await AuthService.getUser();
     if (user != null) {
+      final stamps = await ApiService.fetchCustomerStamps(user['id']);
+      if (!mounted) return;
       setState(() {
         _loggedInUserName = user['full_name'];
+        _stampCount = stamps;
       });
     }
   }
@@ -34,24 +39,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
     // Wait for the bottom sheet to close and see if it hands back user data
     final userData = await showModalBottomSheet(
       context: context,
-      isScrollControlled: true, 
-      backgroundColor: Colors.transparent, 
-      isDismissible: true, 
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      isDismissible: true,
       enableDrag: true,
       builder: (BuildContext context) {
         return Padding(
           padding: EdgeInsets.only(
             bottom: MediaQuery.of(context).viewInsets.bottom,
           ),
-          child: const WelcomeBottomSheet(), 
+          child: const WelcomeBottomSheet(),
         );
       },
     );
 
     // If we got data back (meaning a successful login), update the UI!
     if (userData != null && userData['full_name'] != null) {
+      final stamps = await ApiService.fetchCustomerStamps(userData['id']);
+      if (!mounted) return;
       setState(() {
         _loggedInUserName = userData['full_name'];
+        _stampCount = stamps;
       });
     }
   }
@@ -59,20 +67,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     const bgColor = Color(0xFFF3EFE6);
-    
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       backgroundColor: bgColor,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: _buildScanQRButton(bgColor),
-      bottomNavigationBar: const CustomBottomNavBar(selectedIndex: 3), 
+      bottomNavigationBar: const CustomBottomNavBar(selectedIndex: 3),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 24.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildHeader(context), 
+              _buildHeader(context),
               const SizedBox(height: 30),
               _buildCustomerCard(),
               const SizedBox(height: 30),
@@ -93,7 +101,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 '2. What are your opening hours?',
                 'We\'re open every day from 8:00 AM to 10:00 PM. Opening hours may change during holidays or special events.',
               ),
-              const SizedBox(height: 40), 
+              const SizedBox(height: 40),
             ],
           ),
         ),
@@ -105,14 +113,20 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget _buildHeader(BuildContext context) {
     final textColor = const Color(0xFF1E1E1E);
     final goldDark = const Color(0xFFC3A358);
-    
+
     // Check if we have a name. If yes, grab the first initial!
-    String initial = _loggedInUserName != null ? _loggedInUserName![0].toUpperCase() : 'L';
-    String displayText = _loggedInUserName != null ? 'Hi, $_loggedInUserName' : 'LOGIN';
+    String initial = _loggedInUserName != null
+        ? _loggedInUserName![0].toUpperCase()
+        : 'L';
+    String displayText = _loggedInUserName != null
+        ? 'Hi, $_loggedInUserName'
+        : 'LOGIN';
 
     return GestureDetector(
       // Only allow tapping to open the popup if they are NOT logged in
-      onTap: _loggedInUserName == null ? () => _showWelcomePopup(context) : null,
+      onTap: _loggedInUserName == null
+          ? () => _showWelcomePopup(context)
+          : null,
       behavior: HitTestBehavior.opaque,
       child: Row(
         children: [
@@ -153,7 +167,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     final goldDark = const Color(0xFFC3A358);
     final goldLight = const Color(0xFFE5D5AE);
     final textColor = const Color(0xFF1E1E1E);
-    String initial = _loggedInUserName != null ? _loggedInUserName![0].toUpperCase() : 'L';
+    String initial = _loggedInUserName != null
+        ? _loggedInUserName![0].toUpperCase()
+        : 'L';
 
     return Container(
       decoration: BoxDecoration(
@@ -172,7 +188,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: goldDark,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(12),
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -225,7 +243,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
             padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
             decoration: BoxDecoration(
               color: goldLight,
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(12)),
+              borderRadius: const BorderRadius.vertical(
+                bottom: Radius.circular(12),
+              ),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -239,7 +259,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                     child: const Text(
                       'Log Out',
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.redAccent),
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.redAccent,
+                      ),
                     ),
                   )
                 else
@@ -248,10 +272,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 const Text(
                   'View My Benefits',
                   textAlign: TextAlign.right,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
                 ),
               ],
             ),
@@ -276,7 +297,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
         ),
         if (hasArrow)
-          Icon(Icons.chevron_right, color: textColor.withOpacity(0.6), size: 20),
+          Icon(
+            Icons.chevron_right,
+            color: textColor.withOpacity(0.6),
+            size: 20,
+          ),
       ],
     );
   }
@@ -293,13 +318,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
               color: cardGreen,
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.15), // Shadow color and opacity
-                spreadRadius: 1, // Expands the shadow
-                blurRadius: 8,  // Softens the shadow
-                offset: Offset(0, 4), // Moves the shadow (x, y)
-              ),
-            ],
+                BoxShadow(
+                  color: Colors.black.withOpacity(
+                    0.15,
+                  ), // Shadow color and opacity
+                  spreadRadius: 1, // Expands the shadow
+                  blurRadius: 8, // Softens the shadow
+                  offset: Offset(0, 4), // Moves the shadow (x, y)
+                ),
+              ],
             ),
             child: Column(
               children: [
@@ -311,7 +338,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.confirmation_num_outlined, size: 20, color: textColor),
+                    Icon(
+                      Icons.confirmation_num_outlined,
+                      size: 20,
+                      color: textColor,
+                    ),
                     const SizedBox(width: 6),
                     Text(
                       '0',
@@ -336,12 +367,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
               borderRadius: BorderRadius.circular(12),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.15), // Shadow color and opacity
+                  color: Colors.black.withOpacity(
+                    0.15,
+                  ), // Shadow color and opacity
                   spreadRadius: 1, // Expands the shadow
-                  blurRadius: 8,  // Softens the shadow
+                  blurRadius: 8, // Softens the shadow
                   offset: Offset(0, 4), // Moves the shadow (x, y)
                 ),
-            ],
+              ],
             ),
             child: Column(
               children: [
@@ -369,6 +402,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget _buildLoyaltyStamps() {
     final cardGreen = const Color(0xFFE1E2C9);
     final textColor = const Color(0xFF1E1E1E);
+    final visibleStampCount = _stampCount.clamp(0, 10);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -391,7 +425,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ),
               ),
               Text(
-                '4/10',
+                '$visibleStampCount/10',
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
@@ -403,20 +437,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
           const SizedBox(height: 6),
           Text(
             'Free drinks at 10 stamps. Get 10% off every stamp.',
-            style: TextStyle(
-              fontSize: 10,
-              color: textColor.withOpacity(0.7),
-            ),
+            style: TextStyle(fontSize: 10, color: textColor.withOpacity(0.7)),
           ),
           const SizedBox(height: 20),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(5, (index) => _buildStamp(index < 4)),
+            children: List.generate(
+              5,
+              (index) => _buildStamp(index < visibleStampCount),
+            ),
           ),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: List.generate(5, (index) => _buildStamp(false)),
+            children: List.generate(
+              5,
+              (index) => _buildStamp(index + 5 < visibleStampCount),
+            ),
           ),
         ],
       ),
@@ -448,7 +485,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         children: [
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            color: const Color(0xFFE2C991), 
+            color: const Color(0xFFE2C991),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -462,13 +499,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                 ),
-                Icon(Icons.chevron_right, size: 16, color: textColor.withOpacity(0.6)),
+                Icon(
+                  Icons.chevron_right,
+                  size: 16,
+                  color: textColor.withOpacity(0.6),
+                ),
               ],
             ),
           ),
           Container(
             padding: const EdgeInsets.all(16),
-            color: const Color(0xFFE4DFCC), 
+            color: const Color(0xFFE4DFCC),
             child: Text(
               answer,
               style: TextStyle(
@@ -487,11 +528,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Container(
       height: 64,
       width: 64,
-      margin: const EdgeInsets.only(top: 24), 
+      margin: const EdgeInsets.only(top: 24),
       decoration: BoxDecoration(
-        color: const Color(0xFF8C9862), 
+        color: const Color(0xFF8C9862),
         shape: BoxShape.circle,
-        border: Border.all(color: bgColor, width: 4), 
+        border: Border.all(color: bgColor, width: 4),
       ),
       child: InkWell(
         onTap: () {
@@ -502,7 +543,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
           children: [
             Icon(Icons.qr_code_scanner, color: Colors.white, size: 24),
             SizedBox(height: 2),
-            Text('SCAN QR', style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
+            Text(
+              'SCAN QR',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 8,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
       ),
