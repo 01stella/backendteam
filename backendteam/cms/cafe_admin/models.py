@@ -73,8 +73,14 @@ class Orders(models.Model):
     customer = models.ForeignKey(Customer, models.DO_NOTHING, blank=True, null=True)
     total = models.DecimalField(max_digits=10, decimal_places=2)
     order_status = models.CharField(max_length=50, blank=True, null=True)
+    payment_method = models.CharField(max_length=50, blank=True, null=True)
+    payment_status = models.CharField(max_length=20, blank=True, null=True)
     created_at = models.DateTimeField(blank=True, null=True)
     modified_at = models.DateTimeField()
+    fulfillment_type = models.CharField(max_length=20)
+    pickup_time = models.TimeField(blank=True, null=True)
+    delivery_floor = models.CharField(max_length=50, blank=True, null=True)
+    delivery_room = models.CharField(max_length=50, blank=True, null=True)
 
     class Meta:
         managed = False
@@ -101,3 +107,19 @@ class OrderItems(models.Model):
 
     def __str__(self):
         return f"{self.quantity}x {self.menu.item_name}"
+
+
+class Stamp(models.Model):
+    customer = models.ForeignKey(Customer, models.DO_NOTHING)
+    order = models.OneToOneField(Orders, models.DO_NOTHING, blank=True, null=True)
+    stamp_change = models.IntegerField()
+    description = models.CharField(max_length=255, blank=True, null=True)
+    created_at = models.DateTimeField(blank=True, null=True)
+
+    class Meta:
+        managed = False
+        db_table = 'stamps'
+        verbose_name_plural = 'Stamps'
+
+    def __str__(self):
+        return f"{self.customer.full_name}: {self.stamp_change}"

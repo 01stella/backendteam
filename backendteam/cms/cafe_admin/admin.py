@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Category, Customer, Menu, Orders, OrderItems, Bundle, BundleItem
+from .models import Category, Customer, Menu, Orders, OrderItems, Bundle, BundleItem, Stamp
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -43,8 +43,16 @@ class OrderItemsInline(admin.TabularInline):
 
 @admin.register(Orders)
 class OrdersAdmin(admin.ModelAdmin):
-    list_display = ('id', 'customer', 'total', 'order_status', 'created_at')
-    list_filter = ('order_status', 'created_at')
+    list_display = ('id', 'customer', 'total', 'order_status', 'payment_method', 'payment_status', 'fulfillment_type', 'created_at')
+    list_filter = ('order_status', 'payment_method', 'payment_status', 'fulfillment_type', 'created_at')
     search_fields = ('id', 'customer__full_name')
     readonly_fields = ('created_at', 'modified_at')
     inlines = [OrderItemsInline]
+
+
+@admin.register(Stamp)
+class StampAdmin(admin.ModelAdmin):
+    list_display = ('id', 'customer', 'order', 'stamp_change', 'description', 'created_at')
+    list_filter = ('stamp_change', 'created_at')
+    search_fields = ('customer__full_name', 'description', 'order__id')
+    readonly_fields = ('created_at',)
