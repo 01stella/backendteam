@@ -25,7 +25,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   String _userPhone = "Loading..."; // Will fetch from memory
 
   // --- NEW: Fulfillment State Variables ---
-  final String _fulfillmentType = CartService().fulfillmentType;
+  late String _fulfillmentType;
   TimeOfDay? _pickupTime;
   final TextEditingController _floorController = TextEditingController();
   final TextEditingController _roomController = TextEditingController();
@@ -33,6 +33,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
   @override
   void initState() {
     super.initState();
+    _fulfillmentType = CartService().fulfillmentType;
     _fetchData();
   }
 
@@ -111,7 +112,7 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // --- DYNAMIC FULFILLMENT SECTION ---
+                    _buildFulfillmentTabs(),
                     _fulfillmentType == 'pickup' ? _buildPickUpSection() : _buildDeliverySection(),
                     Container(height: 8, color: thickDividerColor),
                     _buildOrderSummary(),
@@ -148,6 +149,81 @@ class _CheckoutScreenState extends State<CheckoutScreen> {
           const SizedBox(width: 16),
           const Text('CHECKOUT', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: Color(0xFF1E1E1E))),
         ],
+      ),
+    );
+  }
+
+  Widget _buildFulfillmentTabs() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+      child: Row(
+        children: [
+          Expanded(
+            child: _buildFulfillmentTab(
+              label: 'Pick Up',
+              icon: Icons.coffee,
+              value: 'pickup',
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: _buildFulfillmentTab(
+              label: 'Delivery',
+              icon: Icons.delivery_dining,
+              value: 'delivery',
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFulfillmentTab({
+    required String label,
+    required IconData icon,
+    required String value,
+  }) {
+    const Color activeGreen = Color(0xFF8C9862);
+    const Color inactiveBorder = Color(0xFFC3A358);
+    final bool isSelected = _fulfillmentType == value;
+
+    return GestureDetector(
+      onTap: () {
+        setState(() {
+          _fulfillmentType = value;
+          CartService().fulfillmentType = value;
+        });
+      },
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? activeGreen : Colors.transparent,
+          border: Border.all(
+            color: isSelected ? activeGreen : inactiveBorder,
+            width: 1.2,
+          ),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              icon,
+              size: 18,
+              color: isSelected ? Colors.white : const Color(0xFF1E1E1E),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                color: isSelected ? Colors.white : const Color(0xFF1E1E1E),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

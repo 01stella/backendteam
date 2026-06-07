@@ -60,6 +60,199 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return text[0].toUpperCase() + text.substring(1).toLowerCase();
   }
 
+  String _formatPrice(dynamic value) {
+    final amount = num.tryParse(value?.toString() ?? '') ?? 0;
+    return 'Rp ${amount.toInt()}';
+  }
+
+  String _formatDate(dynamic value) {
+    final rawDate = value?.toString() ?? '';
+    return rawDate.length > 16
+        ? rawDate.substring(0, 16).replaceFirst('T', ' ')
+        : rawDate;
+  }
+
+  String _formatMethod(dynamic value) {
+    switch (value?.toString()) {
+      case 'app_qr':
+        return 'Pay via App';
+      case 'cashier':
+        return 'Pay at Cashier';
+      default:
+        return _capitalize(value?.toString() ?? 'Unknown');
+    }
+  }
+
+  String _fulfillmentTitle(Map<String, dynamic> order) {
+    final type = order['fulfillment_type']?.toString() ?? 'pickup';
+    if (type == 'delivery') {
+      final floor = order['delivery_floor']?.toString() ?? '-';
+      final room = order['delivery_room']?.toString() ?? '-';
+      return 'Delivery - Floor $floor, Room $room';
+    }
+
+    final pickupTime = order['pickup_time']?.toString();
+    return pickupTime == null || pickupTime.isEmpty
+        ? 'Pick Up - UNIJI Lobby'
+        : 'Pick Up - $pickupTime';
+  }
+
+  void _showReceipt(Map<String, dynamic> order) {
+    final items = order['items'] as List<dynamic>? ?? [];
+    final status = _capitalize(order['order_status']?.toString() ?? 'Unknown');
+    final paymentStatus = _capitalize(order['payment_status']?.toString() ?? 'Unknown');
+    final orderId = order['id']?.toString() ?? '-';
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return DraggableScrollableSheet(
+          initialChildSize: 0.78,
+          minChildSize: 0.45,
+          maxChildSize: 0.92,
+          builder: (context, scrollController) {
+            return Container(
+              decoration: const BoxDecoration(
+                color: Color(0xFFFFFCF5),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+              ),
+              child: ListView(
+                controller: scrollController,
+                padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
+                children: [
+                  Center(
+                    child: Container(
+                      width: 44,
+                      height: 5,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFD7CBB8),
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  const Center(
+                    child: Text(
+                      'LUMIORA RECEIPT',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.4,
+                        color: Color(0xFF1E1E1E),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Center(
+                    child: Text(
+                      'Order #$orderId',
+                      style: const TextStyle(fontSize: 12, color: Colors.black54),
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  _buildReceiptInfoRow('Date', _formatDate(order['created_at'])),
+                  _buildReceiptInfoRow('Status', status),
+                  _buildReceiptInfoRow('Payment', _formatMethod(order['payment_method'])),
+                  _buildReceiptInfoRow('Payment Status', paymentStatus),
+                  _buildReceiptInfoRow('Fulfillment', _fulfillmentTitle(order)),
+                  const SizedBox(height: 16),
+                  const Divider(color: Color(0xFFE4D9C8)),
+                  const SizedBox(height: 10),
+                  const Text(
+                    'Items',
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1E1E1E),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  ...items.map((item) => _buildReceiptItem(item)),
+                  const SizedBox(height: 12),
+                  const Divider(color: Color(0xFFE4D9C8)),
+                  const SizedBox(height: 12),
+                  _buildReceiptInfoRow(
+                    'Total',
+                    _formatPrice(order['total']),
+                    isTotal: true,
+                  ),
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildReceiptInfoRow(String label, String value, {bool isTotal = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: isTotal ? 15 : 12,
+                fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
+                color: Colors.black54,
+              ),
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.right,
+              style: TextStyle(
+                fontSize: isTotal ? 18 : 12,
+                fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
+                color: isTotal ? const Color(0xFF8C9862) : const Color(0xFF1E1E1E),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildReceiptItem(dynamic item) {
+    final quantity = int.tryParse(item['quantity']?.toString() ?? '') ?? 0;
+    final itemPrice = num.tryParse(item['item_price']?.toString() ?? '') ?? 0;
+    final menuPrice = num.tryParse(item['price']?.toString() ?? '') ?? 0;
+    final unitPrice = itemPrice > 0 ? itemPrice : menuPrice;
+    final lineTotal = quantity * unitPrice;
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '${quantity}x',
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              item['item_name']?.toString() ?? 'Item',
+              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            _formatPrice(lineTotal),
+            style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     const bgColor = Color(0xFFF6F6E9);
@@ -100,28 +293,28 @@ class _HistoryScreenState extends State<HistoryScreen> {
                         final items = order['items'] as List<dynamic>? ?? [];
                         
                         
-                        // Safely parse the date
-                        String rawDate = order['created_at'] ?? '';
-                        String formattedDate = rawDate.length > 16 
-                            ? rawDate.substring(0, 16).replaceFirst('T', ' ')
-                            : rawDate;
+                        final orderMap = Map<String, dynamic>.from(order as Map);
+                        final formattedDate = _formatDate(order['created_at']);
                         
-                        return HistoryCard(
-                          title: 'UNIJI LOBBY', // Based on your pickup location
-                          dateTime: formattedDate,
-                          status: _capitalize(order['order_status'] ?? 'Unknown'),
-                          statusColor: _getStatusColor(order['order_status'] ?? ''),
-                          price: order['total'].toString(),
-                          itemCount: items.length,
-                          // Map the database items into your custom OrderItem class!
-                          items: items.map((item) => OrderItem(
-                            imageUrl: item['image_url'] ?? '', 
-                            name: item['item_name'] ?? 'Item',
-                            description: 'Qty: ${item['quantity']}',
-                            price: item['price'] != null ? item['price'].toString() : null,
-                          )).toList(),
-                          detailsText: 'Click for details',
-                          
+                        return GestureDetector(
+                          onTap: () => _showReceipt(orderMap),
+                          behavior: HitTestBehavior.opaque,
+                          child: HistoryCard(
+                            title: _fulfillmentTitle(orderMap),
+                            dateTime: formattedDate,
+                            status: _capitalize(order['order_status'] ?? 'Unknown'),
+                            statusColor: _getStatusColor(order['order_status'] ?? ''),
+                            price: order['total'].toString(),
+                            itemCount: items.length,
+                            // Map the database items into your custom OrderItem class!
+                            items: items.map((item) => OrderItem(
+                              imageUrl: item['image_url'] ?? '', 
+                              name: item['item_name'] ?? 'Item',
+                              description: 'Qty: ${item['quantity']}',
+                              price: item['price'] != null ? item['price'].toString() : null,
+                            )).toList(),
+                            detailsText: 'Tap for receipt',
+                          ),
                         );
                       },
                     ),

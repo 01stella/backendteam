@@ -122,7 +122,15 @@ exports.createOrder = async (req, res, next) => {
     console.log("🚀 Payload Received from Flutter:", JSON.stringify(req.body, null, 2));
     
     // Grabbing the new payment_method from Flutter (fallback to 'cashier' just in case)
-    const { customer_id, items, payment_method = 'cashier' } = req.body;
+    const {
+      customer_id,
+      items,
+      payment_method = 'cashier',
+      fulfillment_type = 'pickup',
+      pickup_time = null,
+      delivery_floor = null,
+      delivery_room = null
+    } = req.body;
 
     if (!customer_id || !items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ success: false, message: 'customer_id and a non-empty items array are required' });
@@ -168,9 +176,23 @@ exports.createOrder = async (req, res, next) => {
     const grandTotal = Math.round(subtotal + pb1 + vat);
 
     const [orderResult] = await req.db.query(
-      `INSERT INTO orders (customer_id, total, order_status, payment_method, payment_status, created_at, modified_at)
-       VALUES (?, ?, ?, ?, 'unpaid', ?, ?)`,
-      [customer_id, grandTotal, initialOrderStatus, payment_method, now, now]
+      `INSERT INTO orders (
+        customer_id, total, order_status, payment_method, payment_status,
+        created_at, modified_at, fulfillment_type, pickup_time, delivery_floor, delivery_room
+       )
+       VALUES (?, ?, ?, ?, 'unpaid', ?, ?, ?, ?, ?, ?)`,
+      [
+        customer_id,
+        grandTotal,
+        initialOrderStatus,
+        payment_method,
+        now,
+        now,
+        fulfillment_type,
+        fulfillment_type === 'pickup' ? pickup_time : null,
+        fulfillment_type === 'delivery' ? delivery_floor : null,
+        fulfillment_type === 'delivery' ? delivery_room : null
+      ]
     );
 
     const newOrderId = orderResult.insertId;
@@ -296,7 +318,17 @@ exports.getCustomerOrders = async (req, res) => {
 
     // 1. Fetch the main orders
     const [orders] = await req.db.query(
-      `SELECT id, total, order_status, created_at 
+      `SELECT
+        id,
+        total,
+        order_status,
+        payment_method,
+        payment_status,
+        fulfillment_type,
+        pickup_time,
+        delivery_floor,
+        delivery_room,
+        created_at
        FROM orders 
        WHERE customer_id = ? 
        ORDER BY created_at DESC`,
@@ -306,7 +338,7 @@ exports.getCustomerOrders = async (req, res) => {
     // 2. Loop through and attach the specific items for each order
     for (let order of orders) {
       const [items] = await req.db.query(
-        `SELECT oi.quantity, m.item_name, m.price, m.image_url 
+        `SELECT oi.quantity, oi.item_price, m.item_name, m.price, m.image_url
          FROM order_items oi
          JOIN menu m ON oi.menu_id = m.id
          WHERE oi.order_id = ?`,
