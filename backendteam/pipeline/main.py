@@ -10,8 +10,7 @@ DB_PASSWORD = os.environ.get('DB_PASSWORD')
 if not DB_PASSWORD:
     raise ValueError("SECURITY ALERT: No database password found. Check your .env file!")
 
-engine = create_engine(f"mysql+pymysql://root:{DB_PASSWORD}@lumiora-db:3306/lumiora_db")
-
+engine = create_engine(f"mysql+pymysql://root:{DB_PASSWORD}@104.155.162.70:3306/lumiora_db")
 def run_pipeline_metrics():
     print("Starting pipeline: Crunching all 4 metrics...")
     

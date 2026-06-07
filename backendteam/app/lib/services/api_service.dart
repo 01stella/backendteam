@@ -4,8 +4,10 @@ import 'package:http/http.dart' as http;
 import 'package:flutter/foundation.dart';
 
 class ApiService {
-  // Hardcoded for sanity. Update this if the VM IP changes!
-  static const String serverIp = '104.155.162.70';
+  static const String serverIp = String.fromEnvironment(
+    'VM_IP', 
+    defaultValue: 'localhost' // Fallback just in case
+  );
   
   // Stitched together dynamically
   static const String baseUrl = 'http://$serverIp:3000/api';

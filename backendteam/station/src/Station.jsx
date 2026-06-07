@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { io } from 'socket.io-client';
 
-// Connect directly to your backend port CHANGE TO VM IP
-const serverIp = 'localhost'; 
+// 1. Setup the Base URL from your .env file
+const serverIp = import.meta.env.VITE_VM_IP || 'localhost';
+const API_BASE_URL = `http://${serverIp}:3000`;
 
-const socket = io(`http://${serverIp}:3000`);
+// 2. Initialize Socket using the Base URL
+const socket = io(API_BASE_URL);
 
 const Station = () => {
   const [activeStation, setActiveStation] = useState('B'); 
@@ -12,16 +14,13 @@ const Station = () => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // 1. Fetch data on load or when switching tabs
     fetchPendingItems(activeStation);
 
-    // 2. Listen for new orders from the backend
     socket.on('queue_updated', () => {
       console.log("WebSocket heard a change! Refreshing queue...");
       fetchPendingItems(activeStation);
     });
 
-    // Cleanup the listener when the component unmounts
     return () => {
       socket.off('queue_updated');
     };
@@ -29,7 +28,8 @@ const Station = () => {
 
   const fetchPendingItems = async (stationCode) => {
     try {
-      const response = await fetch(`http://${serverIp}:3000/api/station/pending/${stationCode}`);
+      // 3. Use the Base URL for your fetch requests
+      const response = await fetch(`${API_BASE_URL}/api/station/pending/${stationCode}`);
       const data = await response.json();
       
       if (data.success) {
@@ -45,13 +45,13 @@ const Station = () => {
 
   const handleProcess = async (itemId) => {
     try {
-      const response = await fetch(`http://${serverIp}:3000/api/station/process/${itemId}`, {
+      // 4. Use the Base URL here too
+      const response = await fetch(`${API_BASE_URL}/api/station/process/${itemId}`, {
         method: 'PATCH',
       });
       const data = await response.json();
 
       if (data.success) {
-        // Instantly remove it from the screen for that snappy feel
         setPendingItems((currentItems) => 
           currentItems.filter((item) => item.order_item_id !== itemId)
         );
