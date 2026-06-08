@@ -68,6 +68,7 @@ flutter:
   - assets/cafeqrcode.png
   - assets/cafelogo.png
   - assets/lumioralogo.png
+  - assets/homepage.png
 
 
   # To add assets to your application, add an assets section, like this:

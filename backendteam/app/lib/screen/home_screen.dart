@@ -147,7 +147,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           color: primaryGreen,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.14),
+              color: Colors.black.withValues(alpha: 0.14),
               blurRadius: 12,
               offset: const Offset(0, 5),
             ),
@@ -167,28 +167,20 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         Column(
           children: [
             SizedBox(
-              height: 255,
+              height: 300,
               width: double.infinity,
-              child: FutureBuilder<List<dynamic>>(
-                future: _menuFuture,
-                builder: (context, snapshot) {
-                  final imageUrl = _firstImageUrl(snapshot.data);
-
-                  return imageUrl == null
-                      ? _buildHeroFallback()
-                      : Image.network(
-                          imageUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              _buildHeroFallback(),
-                        );
-                },
+              child: Image.asset(
+                'assets/homepage.png',
+                fit: BoxFit.cover,
+                alignment: Alignment.topCenter,
+                errorBuilder: (context, error, stackTrace) =>
+                    _buildHeroFallback(),
               ),
             ),
             Container(
               width: double.infinity,
               color: primaryGreen,
-              padding: const EdgeInsets.fromLTRB(20, 20, 20, 18),
+              padding: const EdgeInsets.fromLTRB(20, 18, 132, 18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -198,7 +190,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
                       color: Colors.white,
-                      fontSize: 30,
+                      fontSize: 27,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -218,59 +210,41 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         ),
         Positioned(
           right: 20,
-          top: 212,
+          top: 162,
           child: Container(
-            width: 112,
-            height: 112,
+            width: 96,
+            height: 96,
             decoration: BoxDecoration(
               color: Colors.white,
               shape: BoxShape.circle,
-              border: Border.all(color: primaryGreen, width: 5),
+              border: Border.all(color: primaryGreen, width: 4),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withOpacity(0.16),
-                  blurRadius: 16,
-                  offset: const Offset(0, 7),
+                  color: Colors.black.withValues(alpha: 0.13),
+                  blurRadius: 18,
+                  offset: const Offset(0, 8),
                 ),
               ],
             ),
-            padding: const EdgeInsets.all(10),
-            child: ClipOval(
-              child: Image.asset(
-                'assets/lumioralogo.png',
-                fit: BoxFit.contain,
-              ),
-            ),
+            padding: const EdgeInsets.all(13),
+            child: Image.asset('assets/lumioralogo.png', fit: BoxFit.contain),
           ),
         ),
       ],
     );
   }
 
-  String? _firstImageUrl(List<dynamic>? items) {
-    if (items == null) return null;
-    for (final item in items) {
-      final url = item['image_url']?.toString();
-      if (url != null && url.isNotEmpty) return url;
-    }
-    return null;
-  }
-
   Widget _buildHeroFallback() {
     return Container(
       color: const Color(0xFFE8DCC4),
+      padding: const EdgeInsets.fromLTRB(20, 22, 124, 22),
       child: Stack(
         children: [
           Positioned(
-            right: 22,
-            bottom: 28,
-            child: Icon(Icons.local_cafe, size: 110, color: primaryGreen),
-          ),
-          Positioned(
-            left: 22,
-            bottom: 34,
+            left: 0,
+            bottom: 4,
             child: SizedBox(
-              width: 190,
+              width: 230,
               child: Text(
                 'Fresh coffee, bundles, and quick bites.',
                 style: TextStyle(
@@ -363,14 +337,14 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        height: 122,
+        height: 108,
         decoration: BoxDecoration(
           color: bg,
           borderRadius: BorderRadius.circular(8),
           border: isPrimary ? Border.all(color: primaryGreen, width: 2) : null,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha: 0.06),
               blurRadius: 12,
               offset: const Offset(0, 5),
             ),
@@ -379,13 +353,13 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 42, color: fg),
+            Icon(icon, size: 36, color: fg),
             const SizedBox(height: 10),
             Text(
               label,
               style: TextStyle(
                 color: isPrimary ? textDark : Colors.white,
-                fontSize: 19,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -399,7 +373,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, '/menu'),
       child: Container(
-        height: 82,
+        height: 74,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           color: primaryGreen,
@@ -416,7 +390,7 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     'New Bonus Unlock',
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 17,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -429,13 +403,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
               ),
             ),
             Container(
-              width: 96,
-              height: 54,
+              width: 78,
+              height: 46,
               decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.18),
+                color: Colors.white.withValues(alpha: 0.18),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: const Icon(Icons.local_activity, color: Colors.white, size: 30),
+              child: const Icon(
+                Icons.local_activity,
+                color: Colors.white,
+                size: 28,
+              ),
             ),
           ],
         ),
@@ -449,28 +427,34 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
       children: [
         _buildSectionHeader('Bundle Picks', 'View menu'),
         const SizedBox(height: 12),
-        SizedBox(
-          height: 190,
-          child: FutureBuilder<List<Bundle>>(
-            future: _bundlesFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator(color: primaryGreen));
-              }
+        FutureBuilder<List<Bundle>>(
+          future: _bundlesFuture,
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return SizedBox(
+                height: 126,
+                child: Center(
+                  child: CircularProgressIndicator(color: primaryGreen),
+                ),
+              );
+            }
 
-              final bundles = (snapshot.data ?? []).take(5).toList();
-              if (bundles.isEmpty) {
-                return _buildEmptyStrip('Bundles will appear here once available.');
-              }
+            final bundles = (snapshot.data ?? []).take(5).toList();
+            if (bundles.isEmpty) {
+              return _buildEmptyState('No bundles available yet.');
+            }
 
-              return ListView.separated(
+            return SizedBox(
+              height: 158,
+              child: ListView.separated(
                 scrollDirection: Axis.horizontal,
                 itemCount: bundles.length,
-                separatorBuilder: (_, __) => const SizedBox(width: 12),
-                itemBuilder: (context, index) => _buildBundleCard(bundles[index]),
-              );
-            },
-          ),
+                separatorBuilder: (context, index) => const SizedBox(width: 12),
+                itemBuilder: (context, index) =>
+                    _buildBundleCard(bundles[index]),
+              ),
+            );
+          },
         ),
       ],
     );
@@ -497,8 +481,11 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
                     : Image.network(
                         bundle.imageUrl,
                         fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) =>
-                            Icon(Icons.bakery_dining, size: 48, color: primaryGreen),
+                        errorBuilder: (context, error, stackTrace) => Icon(
+                          Icons.bakery_dining,
+                          size: 48,
+                          color: primaryGreen,
+                        ),
                       ),
               ),
             ),
@@ -538,20 +525,24 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
           future: _menuFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator(color: primaryGreen));
+              return Center(
+                child: CircularProgressIndicator(color: primaryGreen),
+              );
             }
 
             final items = (snapshot.data ?? []).take(4).toList();
             if (items.isEmpty) {
-              return _buildEmptyStrip('Popular menu items will appear here soon.');
+              return _buildEmptyState('No menu items available yet.');
             }
 
             return Column(
               children: items
-                  .map((item) => Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: _buildPopularItem(item),
-                      ))
+                  .map(
+                    (item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: _buildPopularItem(item),
+                    ),
+                  )
                   .toList(),
             );
           },
@@ -669,17 +660,17 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     );
   }
 
-  Widget _buildEmptyStrip(String text) {
+  Widget _buildEmptyState(String message) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
         color: surface,
         borderRadius: BorderRadius.circular(8),
         border: Border.all(color: const Color(0xFFE8DDCA)),
       ),
       child: Text(
-        text,
+        message,
         style: const TextStyle(color: Colors.black54, fontSize: 12),
       ),
     );
