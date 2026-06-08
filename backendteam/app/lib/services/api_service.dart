@@ -220,7 +220,7 @@ class ApiService {
 
       if (response.statusCode == 200) {
         final data = jsonDecode(response.body);
-        return data['total_stamps'] ?? 0;
+        return int.tryParse(data['total_stamps']?.toString() ?? '') ?? 0;
       } else {
         return 0;
       }
