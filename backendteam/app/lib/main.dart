@@ -3,6 +3,7 @@ import 'package:backendteam/screen/register.dart';
 import 'screen/history_screen.dart';
 import 'screen/menu_screen.dart';
 import 'screen/home_screen.dart';
+import 'screen/splash_screen.dart';
 import 'screen/viewcart_screen.dart';
 import 'screen/checkout_screen.dart';
 import 'screen/payment_screen.dart';
@@ -22,16 +23,16 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Color(0xFF795548)),
         useMaterial3: true,
       ),
-      home: const HomeScreen(),
+      home: const SplashScreen(),
       routes: {
         '/history': (context) => const HistoryScreen(),
         '/register': (context) => RegisterScreen(),
         '/menu': (context) => const MenuScreen(),
         '/home': (context) => const HomeScreen(),
         '/cart': (context) => const CartScreen(),
+
         // '/checkout': (context) => const CheckoutScreen(),
         // '/payment': (context) => const PaymentScreen(),
-
       },
       debugShowCheckedModeBanner: false,
     );
@@ -55,11 +56,7 @@ class HomePage extends StatelessWidget {
                 color: Color(0xFF795548),
                 borderRadius: BorderRadius.circular(40),
               ),
-              child: Icon(
-                Icons.coffee,
-                color: Colors.white,
-                size: 50,
-              ),
+              child: Icon(Icons.coffee, color: Colors.white, size: 50),
             ),
             SizedBox(height: 24),
             Text(
@@ -73,10 +70,7 @@ class HomePage extends StatelessWidget {
             SizedBox(height: 8),
             Text(
               'Welcome to your favorite coffee shop',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey,
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey),
             ),
             SizedBox(height: 40),
             ElevatedButton(
