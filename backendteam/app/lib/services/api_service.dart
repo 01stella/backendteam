@@ -35,6 +35,7 @@ class ApiService {
     String? paymentMethod,
     required List<Map<String, dynamic>> items,
     required String fulfillmentType,
+    int? voucherId,
     String? pickupTime,
     String? deliveryFloor,
     String? deliveryRoom,
@@ -51,6 +52,7 @@ class ApiService {
           "pickup_time": pickupTime,
           "delivery_floor": deliveryFloor,
           "delivery_room": deliveryRoom,
+          "voucher_id": voucherId,
         }),
       );
 
@@ -89,13 +91,19 @@ class ApiService {
 
   // 3. Calculate Order
   static Future<Map<String, dynamic>?> calculateOrder(
-    List<Map<String, dynamic>> items,
-  ) async {
+    List<Map<String, dynamic>> items, {
+    int? customerId,
+    int? voucherId,
+  }) async {
     try {
       final response = await http.post(
         Uri.parse('$baseUrl/orders/calculate'),
         headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'items': items}),
+        body: jsonEncode({
+          'customer_id': customerId,
+          'items': items,
+          'voucher_id': voucherId,
+        }),
       );
 
       if (response.statusCode == 200) {
@@ -193,6 +201,25 @@ class ApiService {
   }
 
   // 7. FETCH ORDER HISTORY
+  static Future<Map<String, dynamic>?> fetchCustomerById(int customerId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/customers/$customerId'),
+      );
+
+      if (response.statusCode == 200) {
+        return jsonDecode(response.body);
+      } else {
+        debugPrint("Failed to fetch customer: ${response.body}");
+        return null;
+      }
+    } catch (e) {
+      debugPrint("Error fetching customer: $e");
+      return null;
+    }
+  }
+
+  // 8. FETCH ORDER HISTORY
   static Future<List<dynamic>?> fetchOrderHistory(int customerId) async {
     try {
       final response = await http.get(
@@ -227,6 +254,37 @@ class ApiService {
     } catch (e) {
       debugPrint("Error fetching stamps: $e");
       return 0;
+    }
+  }
+
+  static Future<List<dynamic>> fetchCustomerVouchers(int customerId) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/customers/$customerId/vouchers'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['data'] ?? [];
+      } else {
+        debugPrint("Failed to fetch vouchers: ${response.body}");
+        return [];
+      }
+    } catch (e) {
+      debugPrint("Error fetching vouchers: $e");
+      return [];
+    }
+  }
+
+  static Future<Map<String, dynamic>> redeemStampVoucher(int customerId) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/customers/$customerId/redeem-voucher'),
+      );
+
+      return jsonDecode(response.body);
+    } catch (e) {
+      return {'success': false, 'message': 'Network error: $e'};
     }
   }
 }

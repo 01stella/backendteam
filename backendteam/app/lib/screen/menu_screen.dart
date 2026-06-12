@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
+import '../widgets/cafe_logo_button.dart';
 import '../widgets/welcome_bottom_sheet.dart';
 import '../widgets/custom_bottom_navbar.dart';
-import 'dart:convert';
 import '../services/api_service.dart';
 import '../services/cart_service.dart';
 import '../model/cart_item.dart';
@@ -146,16 +146,7 @@ class _MenuScreenState extends State<MenuScreen> {
               shape: BoxShape.circle,
               border: Border.all(color: goldColor, width: 1.5),
             ),
-            child: Center(
-              child: Text(
-                'L',
-                style: TextStyle(
-                  fontSize: 20,
-                  color: goldColor,
-                  fontWeight: FontWeight.w300,
-                ),
-              ),
-            ),
+            child: const CafeLogoButton(),
           ),
           const SizedBox(width: 16),
           const Text(
@@ -701,7 +692,7 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
 
     // 2. Not logged in? Show the WelcomeBottomSheet!
     if (user == null) {
-      if (!context.mounted) return;
+      if (!mounted) return;
 
       // We await the bottom sheet to see if they logged in successfully
       final loginResult = await showModalBottomSheet(
@@ -744,20 +735,28 @@ class _ItemDetailsBottomSheetState extends State<ItemDetailsBottomSheet> {
       ),
     );
 
-    if (!context.mounted) return;
+    if (!mounted) return;
 
     // 4. Navigate based on which button they pressed
     if (goToCheckout) {
       Navigator.pop(context); // Close the item details sheet
       Navigator.pushNamed(context, '/cart'); // Go to cart
     } else {
+      final messenger = ScaffoldMessenger.of(context);
+      final media = MediaQuery.of(context);
+      final bottomMargin = (media.size.height - media.padding.top - 96).clamp(
+        20.0,
+        media.size.height,
+      );
+
       Navigator.pop(context); // Close the item details sheet
-      ScaffoldMessenger.of(context).showSnackBar(
+      messenger.hideCurrentSnackBar();
+      messenger.showSnackBar(
         SnackBar(
           content: const Text('Added to Cart!'),
           backgroundColor: const Color(0xFF8C9862),
           behavior: SnackBarBehavior.floating,
-          margin: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
+          margin: EdgeInsets.fromLTRB(20, 0, 20, bottomMargin),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(10),
           ),

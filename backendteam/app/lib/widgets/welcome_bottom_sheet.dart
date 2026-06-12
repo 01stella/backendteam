@@ -1,8 +1,8 @@
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/cupertino.dart'; 
+import 'package:flutter/cupertino.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import '../services/api_service.dart'; 
+import '../services/api_service.dart';
 import '../services/auth_service.dart'; // <--- Added the auth service import!
 
 class WelcomeBottomSheet extends StatefulWidget {
@@ -14,14 +14,14 @@ class WelcomeBottomSheet extends StatefulWidget {
 
 class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
   // --- STATE ---
-  bool _isLogin = true; 
-  bool _isLoading = false; 
-  
+  bool _isLogin = true;
+  bool _isLoading = false;
+
   bool _isMarketingChecked = false;
   bool _isTermsChecked = false;
 
   // We now store the actual DateTime object to easily send to MySQL
-  DateTime? _selectedDate; 
+  DateTime? _selectedDate;
 
   // Controllers
   final TextEditingController _emailController = TextEditingController();
@@ -31,15 +31,18 @@ class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
   final TextEditingController _birthdayController = TextEditingController();
 
   // --- COLORS (Matched to Figma) ---
-  static const Color primaryPopupColor = Color(0xFFEFECE5); 
-  static const Color fieldColor = Color(0xFFE2DED4); 
-  static const Color customGreen = Color(0xFFBFC67C); 
-  static const Color darkOliveButton = Color(0xFF4C4C36); 
+  static const Color primaryPopupColor = Color(0xFFEFECE5);
+  static const Color fieldColor = Color(0xFFE2DED4);
+  static const Color customGreen = Color(0xFFBFC67C);
+  static const Color darkOliveButton = Color(0xFF4C4C36);
   static const Color darkTextGrey = Color(0xFF8A8574);
-  static const Color lightGrey = Color(0xFFDFDAD1); 
-  
+  static const Color lightGrey = Color(0xFFDFDAD1);
+
   final TextStyle headerTextStyle = const TextStyle(
-    color: Colors.black, fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.0,
+    color: Colors.black,
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+    letterSpacing: 1.0,
   );
 
   @override
@@ -74,15 +77,23 @@ class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
               // Done Button Header
               Container(
                 decoration: const BoxDecoration(
-                  border: Border(bottom: BorderSide(color: lightGrey, width: 1)),
+                  border: Border(
+                    bottom: BorderSide(color: lightGrey, width: 1),
+                  ),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     CupertinoButton(
-                      child: const Text('Done', style: TextStyle(color: darkOliveButton, fontWeight: FontWeight.bold)),
+                      child: const Text(
+                        'Done',
+                        style: TextStyle(
+                          color: darkOliveButton,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       onPressed: () => Navigator.of(context).pop(),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -97,7 +108,8 @@ class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
                     setState(() {
                       _selectedDate = newDate;
                       // Update the text field to look pretty for the user
-                      _birthdayController.text = "${newDate.day.toString().padLeft(2, '0')} / ${newDate.month.toString().padLeft(2, '0')} / ${newDate.year}";
+                      _birthdayController.text =
+                          "${newDate.day.toString().padLeft(2, '0')} / ${newDate.month.toString().padLeft(2, '0')} / ${newDate.year}";
                     });
                   },
                 ),
@@ -115,13 +127,13 @@ class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
       decoration: const BoxDecoration(
         color: primaryPopupColor,
         borderRadius: BorderRadius.only(
-          topLeft: Radius.circular(20.0), 
+          topLeft: Radius.circular(20.0),
           topRight: Radius.circular(20.0),
         ),
       ),
       child: SingleChildScrollView(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(32, 28, 32, 32), 
+          padding: const EdgeInsets.fromLTRB(32, 28, 32, 32),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -130,11 +142,11 @@ class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('WELCOME', style: headerTextStyle),
-                  const SizedBox(height: 8), 
+                  const SizedBox(height: 8),
                   Container(width: 40, height: 1.5, color: customGreen),
                 ],
               ),
-              const SizedBox(height: 28), 
+              const SizedBox(height: 28),
 
               AnimatedSize(
                 duration: const Duration(milliseconds: 300),
@@ -150,94 +162,102 @@ class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : () async {
-                    setState(() => _isLoading = true);
+                  onPressed: _isLoading
+                      ? null
+                      : () async {
+                          setState(() => _isLoading = true);
 
-                    Map<String, dynamic> response;
+                          Map<String, dynamic> response;
 
-                    if (_isLogin) {
-                      response = await ApiService.loginCustomer(
-                        email: _emailController.text.trim(),
-                        password: _passwordController.text,
-                      );
-                    } else {
-                      String formattedDate = '';
-                      if (_selectedDate != null) {
-                        formattedDate = "${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}";
-                      }
+                          if (_isLogin) {
+                            response = await ApiService.loginCustomer(
+                              email: _emailController.text.trim(),
+                              password: _passwordController.text,
+                            );
+                          } else {
+                            String formattedDate = '';
+                            if (_selectedDate != null) {
+                              formattedDate =
+                                  "${_selectedDate!.year}-${_selectedDate!.month.toString().padLeft(2, '0')}-${_selectedDate!.day.toString().padLeft(2, '0')}";
+                            }
 
-                      response = await ApiService.registerCustomer(
-                        fullName: _nameController.text.trim(),
-                        email: _emailController.text.trim(),
-                        password: _passwordController.text,
-                        phone: '0${_phoneController.text.trim()}', 
-                        birthday: formattedDate,
-                      );
-                    }
+                            response = await ApiService.registerCustomer(
+                              fullName: _nameController.text.trim(),
+                              email: _emailController.text.trim(),
+                              password: _passwordController.text,
+                              phone: '0${_phoneController.text.trim()}',
+                              birthday: formattedDate,
+                            );
+                          }
 
-                    if (!mounted) return;
-                    setState(() => _isLoading = false);
+                          if (!mounted) return;
+                          setState(() => _isLoading = false);
 
-                    // --- NEW SUCCESS/FAIL LOGIC ---
-                    if (response['success'] == true) {
-                      
-                      if (_isLogin) {
-                        // NEW: Save the session to the phone!
-                        await AuthService.saveUser(
-                          response['data']['id'], 
-                          response['data']['full_name']
-                        );
+                          // --- NEW SUCCESS/FAIL LOGIC ---
+                          if (response['success'] == true) {
+                            if (_isLogin) {
+                              // NEW: Save the session to the phone!
+                              await AuthService.saveUser(
+                                response['data']['id'],
+                                response['data']['full_name'],
+                                email: _emailController.text.trim(),
+                              );
 
-                        // Pass the 'data' object back to the main screen!
-                        Navigator.pop(context, response['data']); 
-                        
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Login Successful! Welcome back.'), 
-                            backgroundColor: Color(0xFF8C9862) 
-                          ),
-                        );
-                      } else {
-                        // REGISTER SUCCESS: Don't close! Just flip back to Login.
-                        setState(() {
-                          _isLogin = true; 
-                        });
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Registration Successful! Please log in.'), 
-                            backgroundColor: Color(0xFF8C9862) 
-                          ),
-                        );
-                      }
-
-                    } else {
-                      // FAIL: Show the error message from the backend
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text(response['message'] ?? 'An error occurred. Please try again.'), 
-                          backgroundColor: Colors.redAccent
-                        ),
-                      );
-                    }
-                  },
+                              // Pass the 'data' object back to the main screen!
+                              Navigator.pop(context, response['data']);
+                            } else {
+                              // REGISTER SUCCESS: Don't close! Just flip back to Login.
+                              setState(() {
+                                _isLogin = true;
+                              });
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'Registration Successful! Please log in.',
+                                  ),
+                                  backgroundColor: Color(0xFF8C9862),
+                                ),
+                              );
+                            }
+                          } else {
+                            // FAIL: Show the error message from the backend
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  response['message'] ??
+                                      'An error occurred. Please try again.',
+                                ),
+                                backgroundColor: Colors.redAccent,
+                              ),
+                            );
+                          }
+                        },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: darkOliveButton,
                     elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8.0)), 
-                    padding: const EdgeInsets.symmetric(vertical: 16), 
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
-                  child: _isLoading 
-                    ? const SizedBox(
-                        height: 20, 
-                        width: 20, 
-                        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
-                      )
-                    : Text(
-                        _isLogin ? 'LOGIN' : 'CONTINUE',
-                        style: const TextStyle(
-                          color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600, letterSpacing: 1.5, 
+                  child: _isLoading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : Text(
+                          _isLogin ? 'LOGIN' : 'CONTINUE',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            letterSpacing: 1.5,
+                          ),
                         ),
-                      ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -250,13 +270,18 @@ class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
                     padding: const EdgeInsets.all(8.0),
                     child: Text.rich(
                       TextSpan(
-                        text: _isLogin ? "Don't have an account? " : "Already have an account? ",
-                        style: const TextStyle(color: darkTextGrey, fontSize: 11),
+                        text: _isLogin
+                            ? "Don't have an account? "
+                            : "Already have an account? ",
+                        style: const TextStyle(
+                          color: darkTextGrey,
+                          fontSize: 11,
+                        ),
                         children: [
                           TextSpan(
                             text: _isLogin ? 'REGISTER' : 'LOG IN',
                             style: const TextStyle(
-                              color: Colors.black, 
+                              color: Colors.black,
                               fontWeight: FontWeight.bold,
                               decoration: TextDecoration.underline,
                             ),
@@ -286,13 +311,15 @@ class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
                 children: [
                   _customConsentCheckbox(
                     value: _isMarketingChecked,
-                    onChanged: (val) => setState(() => _isMarketingChecked = val!),
+                    onChanged: (val) =>
+                        setState(() => _isMarketingChecked = val!),
                     titleText: 'Marketing Communications',
                     description: const TextSpan(
-                      text: 'I wish to receive marketing communications via WhatsApp, email, text messaging and/or phonecall.',
+                      text:
+                          'I wish to receive marketing communications via WhatsApp, email, text messaging and/or phonecall.',
                     ),
                   ),
-                  const SizedBox(height: 16), 
+                  const SizedBox(height: 16),
                   _customConsentCheckbox(
                     value: _isTermsChecked,
                     onChanged: (val) => setState(() => _isTermsChecked = val!),
@@ -302,13 +329,19 @@ class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
                       children: [
                         TextSpan(
                           text: 'Terms of Use',
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
                           recognizer: TapGestureRecognizer()..onTap = () {},
                         ),
                         const TextSpan(text: ' and '),
                         TextSpan(
                           text: 'Privacy Policy',
-                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
                           recognizer: TapGestureRecognizer()..onTap = () {},
                         ),
                         const TextSpan(text: '.'),
@@ -330,7 +363,11 @@ class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
       children: [
         _buildTextField(hint: 'Email', controller: _emailController),
         const SizedBox(height: 16),
-        _buildTextField(hint: 'Password', controller: _passwordController, isPassword: true),
+        _buildTextField(
+          hint: 'Password',
+          controller: _passwordController,
+          isPassword: true,
+        ),
       ],
     );
   }
@@ -343,7 +380,11 @@ class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
         const SizedBox(height: 16),
         _buildTextField(hint: 'Email', controller: _emailController),
         const SizedBox(height: 16),
-        _buildTextField(hint: 'Password', controller: _passwordController, isPassword: true),
+        _buildTextField(
+          hint: 'Password',
+          controller: _passwordController,
+          isPassword: true,
+        ),
         const SizedBox(height: 16),
         Row(
           children: [
@@ -351,9 +392,16 @@ class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Phone No.', style: TextStyle(fontSize: 10, color: darkTextGrey)),
+                  const Text(
+                    'Phone No.',
+                    style: TextStyle(fontSize: 10, color: darkTextGrey),
+                  ),
                   const SizedBox(height: 6),
-                  _buildTextField(hint: '+62 | ', controller: _phoneController, isNumber: true),
+                  _buildTextField(
+                    hint: '+62 | ',
+                    controller: _phoneController,
+                    isNumber: true,
+                  ),
                 ],
               ),
             ),
@@ -362,10 +410,13 @@ class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text('Birthday', style: TextStyle(fontSize: 10, color: darkTextGrey)),
+                  const Text(
+                    'Birthday',
+                    style: TextStyle(fontSize: 10, color: darkTextGrey),
+                  ),
                   const SizedBox(height: 6),
                   _buildTextField(
-                    hint: 'DD / MM / YYYY', 
+                    hint: 'DD / MM / YYYY',
                     controller: _birthdayController,
                     readOnly: true,
                     onTap: _presentDatePicker,
@@ -374,18 +425,18 @@ class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
               ),
             ),
           ],
-        )
+        ),
       ],
     );
   }
 
   Widget _buildTextField({
-    required String hint, 
-    required TextEditingController controller, 
+    required String hint,
+    required TextEditingController controller,
     bool isPassword = false,
     bool isNumber = false,
-    bool readOnly = false, 
-    VoidCallback? onTap,   
+    bool readOnly = false,
+    VoidCallback? onTap,
   }) {
     return TextField(
       controller: controller,
@@ -400,7 +451,10 @@ class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
         hintStyle: const TextStyle(color: darkTextGrey, fontSize: 14),
         filled: true,
         fillColor: fieldColor,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
+        ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8),
           borderSide: BorderSide.none,
@@ -411,7 +465,8 @@ class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
 
   Widget _socialButton(FaIconData icon) {
     return Container(
-      width: 44, height: 44,
+      width: 44,
+      height: 44,
       decoration: const BoxDecoration(color: lightGrey, shape: BoxShape.circle),
       child: Center(child: FaIcon(icon, size: 20, color: darkTextGrey)),
     );
@@ -431,20 +486,35 @@ class _WelcomeBottomSheetState extends State<WelcomeBottomSheet> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
-            margin: const EdgeInsets.only(top: 2, right: 10), 
-            width: 12, height: 12,
+            margin: const EdgeInsets.only(top: 2, right: 10),
+            width: 12,
+            height: 12,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: value ? darkTextGrey : lightGrey, 
+              color: value ? darkTextGrey : lightGrey,
             ),
           ),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(titleText, style: const TextStyle(color: Colors.black, fontSize: 11, fontWeight: FontWeight.bold)),
+                Text(
+                  titleText,
+                  style: const TextStyle(
+                    color: Colors.black,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text.rich(description, style: const TextStyle(color: darkTextGrey, fontSize: 10, height: 1.3)),
+                Text.rich(
+                  description,
+                  style: const TextStyle(
+                    color: darkTextGrey,
+                    fontSize: 10,
+                    height: 1.3,
+                  ),
+                ),
               ],
             ),
           ),

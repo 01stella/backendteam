@@ -3,6 +3,7 @@ import 'checkout_screen.dart';
 import '../model/cart_item.dart';
 import '../services/cart_service.dart';
 import '../services/auth_service.dart';
+import '../widgets/cafe_logo_button.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({Key? key}) : super(key: key);
@@ -45,17 +46,25 @@ class _CartScreenState extends State<CartScreen> {
           children: [
             _buildHeader(goldColor),
             Container(height: 1.5, color: goldColor.withOpacity(0.5)),
-            
+
             Expanded(
-              child: _cartItems.isEmpty 
-                ? const Center(child: Text("Your cart is empty", style: TextStyle(color: Colors.black54, fontSize: 16)))
-                : ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-                itemCount: _cartItems.length,
-                itemBuilder: (context, index) {
-                  return _buildCartItemCard(index);
-                },
-              ),
+              child: _cartItems.isEmpty
+                  ? const Center(
+                      child: Text(
+                        "Your cart is empty",
+                        style: TextStyle(color: Colors.black54, fontSize: 16),
+                      ),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 24,
+                      ),
+                      itemCount: _cartItems.length,
+                      itemBuilder: (context, index) {
+                        return _buildCartItemCard(index);
+                      },
+                    ),
             ),
             _buildFooter(),
           ],
@@ -76,24 +85,24 @@ class _CartScreenState extends State<CartScreen> {
               shape: BoxShape.circle,
               border: Border.all(color: goldColor, width: 1.5),
             ),
-            child: Center(
-              child: Text(
-                'L',
-                style: TextStyle(fontSize: 20, color: goldColor, fontWeight: FontWeight.w300),
-              ),
-            ),
+            child: const CafeLogoButton(),
           ),
           const SizedBox(width: 16),
           const Text(
             'CART',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 1.5, color: Color(0xFF1E1E1E)),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.5,
+              color: Color(0xFF1E1E1E),
+            ),
           ),
         ],
       ),
     );
   }
 
-Widget _buildCartItemCard(int index) {
+  Widget _buildCartItemCard(int index) {
     final item = _cartItems[index];
     const Color activeGreen = Color(0xFF8C9862);
 
@@ -102,34 +111,46 @@ Widget _buildCartItemCard(int index) {
       // ... your container decoration ...
       child: Padding(
         padding: const EdgeInsets.all(12.0),
-       child: Row(
+        child: Row(
           children: [
             // 1. YOUR NEW IMAGE SIZEDBOX GOES HERE
             SizedBox(
-              width: 70, 
+              width: 70,
               height: 70,
               child: item.imgUrl != null && item.imgUrl!.isNotEmpty
                   ? ClipRRect(
                       borderRadius: BorderRadius.circular(8),
                       child: Image.network(
-                        item.imgUrl!, 
+                        item.imgUrl!,
                         fit: BoxFit.contain,
                         errorBuilder: (context, error, stackTrace) => Container(
-                          decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(8)),
-                          child: Icon(Icons.broken_image, color: Colors.grey.shade400),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.shade200,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Icon(
+                            Icons.broken_image,
+                            color: Colors.grey.shade400,
+                          ),
                         ),
                       ),
                     )
                   : Container(
-                      decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(8)),
-                      child: Icon(Icons.coffee, color: Colors.grey.shade400, size: 28),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        Icons.coffee,
+                        color: Colors.grey.shade400,
+                        size: 28,
+                      ),
                     ),
             ),
-            
+
             // 2. THE SPACING
             const SizedBox(width: 12),
-          
-            
+
             // Details & Controls
             Expanded(
               child: Column(
@@ -143,21 +164,39 @@ Widget _buildCartItemCard(int index) {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(item.name, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E))),
+                            Text(
+                              item.name,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF1E1E1E),
+                              ),
+                            ),
                             const SizedBox(height: 2),
                             // SHOW CUSTOMIZATIONS HERE INSTEAD OF THE GENERIC DESCRIPTION
                             Text(
-                            '${item.iceLevel} • ${item.sugarLevel} • ${item.coffeeStrength}', 
-                              style: TextStyle(fontSize: 10, color: Colors.black.withOpacity(0.6), height: 1.2),
+                              '${item.iceLevel} • ${item.sugarLevel} • ${item.coffeeStrength}',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.black.withOpacity(0.6),
+                                height: 1.2,
+                              ),
                             ),
                           ],
                         ),
                       ),
-                      Text(_formatPrice(item.price), style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E))),
+                      Text(
+                        _formatPrice(item.price),
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E1E1E),
+                        ),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 12),
-                  
+
                   // Quantity Controls
                   Row(
                     children: [
@@ -166,7 +205,14 @@ Widget _buildCartItemCard(int index) {
                       }),
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 12),
-                        child: Text('${item.quantity}', style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Color(0xFF1E1E1E))),
+                        child: Text(
+                          '${item.quantity}',
+                          style: const TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF1E1E1E),
+                          ),
+                        ),
                       ),
                       _buildQtyButton(Icons.add, () {
                         setState(() => item.quantity++);
@@ -176,7 +222,11 @@ Widget _buildCartItemCard(int index) {
                         onTap: () {
                           setState(() => _cartItems.removeAt(index));
                         },
-                        child: const Icon(Icons.delete_outline, color: Color(0xFFD7263D), size: 20),
+                        child: const Icon(
+                          Icons.delete_outline,
+                          color: Color(0xFFD7263D),
+                          size: 20,
+                        ),
                       ),
                     ],
                   ),
@@ -196,7 +246,10 @@ Widget _buildCartItemCard(int index) {
       child: Container(
         width: 24,
         height: 24,
-        decoration: const BoxDecoration(color: activeGreen, shape: BoxShape.circle),
+        decoration: const BoxDecoration(
+          color: activeGreen,
+          shape: BoxShape.circle,
+        ),
         child: Icon(icon, color: Colors.white, size: 16),
       ),
     );
@@ -211,12 +264,30 @@ Widget _buildCartItemCard(int index) {
       color: Colors.transparent,
       child: Column(
         children: [
-          Container(height: 1, color: activeGreen.withOpacity(0.4), margin: const EdgeInsets.only(bottom: 16)),
+          Container(
+            height: 1,
+            color: activeGreen.withOpacity(0.4),
+            margin: const EdgeInsets.only(bottom: 16),
+          ),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text('Total', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: activeGreen)),
-              Text(totalPrice, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: activeGreen)),
+              const Text(
+                'Total',
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: activeGreen,
+                ),
+              ),
+              Text(
+                totalPrice,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: activeGreen,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 24),
@@ -229,10 +300,23 @@ Widget _buildCartItemCard(int index) {
                   },
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: const BorderSide(color: Color(0xFF6E562A), width: 1.5), 
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    side: const BorderSide(
+                      color: Color(0xFF6E562A),
+                      width: 1.5,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  child: const Text('BACK', style: TextStyle(color: Color(0xFF4A3C1D), fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                  child: const Text(
+                    'BACK',
+                    style: TextStyle(
+                      color: Color(0xFF4A3C1D),
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -240,22 +324,32 @@ Widget _buildCartItemCard(int index) {
                 child: ElevatedButton(
                   // 1. Make this function async!
                   onPressed: () async {
-                    final selectedItems = _cartItems.where((item) => item.isSelected).toList();
+                    final selectedItems = _cartItems
+                        .where((item) => item.isSelected)
+                        .toList();
                     if (selectedItems.isEmpty) return;
 
                     // 2. NEW: Check if they are logged in BEFORE routing!
                     final user = await AuthService.getUser();
-                    
+
                     if (user == null) {
                       if (!context.mounted) return;
                       ScaffoldMessenger.of(context).showSnackBar(
                         SnackBar(
-                          content: Text('Please log in from the Profile tab to check out!'),
+                          content: Text(
+                            'Please log in from the Profile tab to check out!',
+                          ),
                           backgroundColor: Colors.redAccent,
-                          
+
                           behavior: SnackBarBehavior.floating,
-                          margin: const EdgeInsets.only(bottom: 20, left: 20, right: 20),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                          margin: const EdgeInsets.only(
+                            bottom: 20,
+                            left: 20,
+                            right: 20,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
                         ),
                       );
                       return; // Stop the function here so they don't go to Checkout
@@ -266,7 +360,8 @@ Widget _buildCartItemCard(int index) {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => CheckoutScreen(cartItems: selectedItems),
+                        builder: (context) =>
+                            CheckoutScreen(cartItems: selectedItems),
                       ),
                     );
                   },
@@ -274,9 +369,19 @@ Widget _buildCartItemCard(int index) {
                     backgroundColor: activeGreen,
                     elevation: 0,
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
-                  child: const Text('CHECK OUT', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+                  child: const Text(
+                    'CHECK OUT',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      letterSpacing: 1.2,
+                    ),
+                  ),
                 ),
               ),
             ],

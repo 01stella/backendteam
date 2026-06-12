@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import '../widgets/cafe_logo_button.dart';
 import '../widgets/historycard.dart';
-import '../widgets/custom_bottom_navbar.dart'; 
+import '../widgets/custom_bottom_navbar.dart';
 import '../services/api_service.dart';
 import '../services/auth_service.dart';
 
@@ -34,7 +35,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
         return;
       }
     }
-    
+
     // Fallback if not logged in or API fails
     if (mounted) {
       setState(() {
@@ -46,14 +47,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
   // Helper to determine status color dynamically
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
-      case 'processing': return const Color(0xFFB98068); 
-      case 'completed': return const Color(0xFF7CB518);  
-      case 'cancelled': return const Color(0xFFD7263D);  
-      case 'pending': return Colors.orangeAccent;
-      default: return Colors.grey;
+      case 'processing':
+        return const Color(0xFFB98068);
+      case 'completed':
+        return const Color(0xFF7CB518);
+      case 'cancelled':
+        return const Color(0xFFD7263D);
+      case 'pending':
+        return Colors.orangeAccent;
+      default:
+        return Colors.grey;
     }
   }
-  
+
   // Quick helper to capitalize the first letter of the status
   String _capitalize(String text) {
     if (text.isEmpty) return text;
@@ -100,7 +106,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
   void _showReceipt(Map<String, dynamic> order) {
     final items = order['items'] as List<dynamic>? ?? [];
     final status = _capitalize(order['order_status']?.toString() ?? 'Unknown');
-    final paymentStatus = _capitalize(order['payment_status']?.toString() ?? 'Unknown');
+    final paymentStatus = _capitalize(
+      order['payment_status']?.toString() ?? 'Unknown',
+    );
     final orderId = order['id']?.toString() ?? '-';
 
     showModalBottomSheet(
@@ -148,13 +156,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
                   Center(
                     child: Text(
                       'Order #$orderId',
-                      style: const TextStyle(fontSize: 12, color: Colors.black54),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.black54,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 20),
-                  _buildReceiptInfoRow('Date', _formatDate(order['created_at'])),
+                  _buildReceiptInfoRow(
+                    'Date',
+                    _formatDate(order['created_at']),
+                  ),
                   _buildReceiptInfoRow('Status', status),
-                  _buildReceiptInfoRow('Payment', _formatMethod(order['payment_method'])),
+                  _buildReceiptInfoRow(
+                    'Payment',
+                    _formatMethod(order['payment_method']),
+                  ),
                   _buildReceiptInfoRow('Payment Status', paymentStatus),
                   _buildReceiptInfoRow('Fulfillment', _fulfillmentTitle(order)),
                   const SizedBox(height: 16),
@@ -187,7 +204,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
     );
   }
 
-  Widget _buildReceiptInfoRow(String label, String value, {bool isTotal = false}) {
+  Widget _buildReceiptInfoRow(
+    String label,
+    String value, {
+    bool isTotal = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
@@ -211,7 +232,9 @@ class _HistoryScreenState extends State<HistoryScreen> {
               style: TextStyle(
                 fontSize: isTotal ? 18 : 12,
                 fontWeight: isTotal ? FontWeight.bold : FontWeight.w600,
-                color: isTotal ? const Color(0xFF8C9862) : const Color(0xFF1E1E1E),
+                color: isTotal
+                    ? const Color(0xFF8C9862)
+                    : const Color(0xFF1E1E1E),
               ),
             ),
           ),
@@ -256,12 +279,12 @@ class _HistoryScreenState extends State<HistoryScreen> {
   @override
   Widget build(BuildContext context) {
     const bgColor = Color(0xFFF6F6E9);
-    
+
     return Scaffold(
       backgroundColor: bgColor,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: _buildScanQRButton(bgColor),
-      bottomNavigationBar: const CustomBottomNavBar(selectedIndex: 2), 
+      bottomNavigationBar: const CustomBottomNavBar(selectedIndex: 2),
       body: SafeArea(
         child: Column(
           children: [
@@ -280,10 +303,22 @@ class _HistoryScreenState extends State<HistoryScreen> {
               ),
             ),
             Expanded(
-              child: _isLoading 
-                ? const Center(child: CircularProgressIndicator(color: Color(0xFF8C9862)))
-                : _orders.isEmpty 
-                  ? const Center(child: Text("No order history yet!", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold)))
+              child: _isLoading
+                  ? const Center(
+                      child: CircularProgressIndicator(
+                        color: Color(0xFF8C9862),
+                      ),
+                    )
+                  : _orders.isEmpty
+                  ? const Center(
+                      child: Text(
+                        "No order history yet!",
+                        style: TextStyle(
+                          color: Colors.grey,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    )
                   // Loop through the database orders and build your HistoryCards
                   : ListView.builder(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -291,28 +326,39 @@ class _HistoryScreenState extends State<HistoryScreen> {
                       itemBuilder: (context, index) {
                         final order = _orders[index];
                         final items = order['items'] as List<dynamic>? ?? [];
-                        
-                        
-                        final orderMap = Map<String, dynamic>.from(order as Map);
+
+                        final orderMap = Map<String, dynamic>.from(
+                          order as Map,
+                        );
                         final formattedDate = _formatDate(order['created_at']);
-                        
+
                         return GestureDetector(
                           onTap: () => _showReceipt(orderMap),
                           behavior: HitTestBehavior.opaque,
                           child: HistoryCard(
                             title: _fulfillmentTitle(orderMap),
                             dateTime: formattedDate,
-                            status: _capitalize(order['order_status'] ?? 'Unknown'),
-                            statusColor: _getStatusColor(order['order_status'] ?? ''),
+                            status: _capitalize(
+                              order['order_status'] ?? 'Unknown',
+                            ),
+                            statusColor: _getStatusColor(
+                              order['order_status'] ?? '',
+                            ),
                             price: order['total'].toString(),
                             itemCount: items.length,
                             // Map the database items into your custom OrderItem class!
-                            items: items.map((item) => OrderItem(
-                              imageUrl: item['image_url'] ?? '', 
-                              name: item['item_name'] ?? 'Item',
-                              description: 'Qty: ${item['quantity']}',
-                              price: item['price'] != null ? item['price'].toString() : null,
-                            )).toList(),
+                            items: items
+                                .map(
+                                  (item) => OrderItem(
+                                    imageUrl: item['image_url'] ?? '',
+                                    name: item['item_name'] ?? 'Item',
+                                    description: 'Qty: ${item['quantity']}',
+                                    price: item['price'] != null
+                                        ? item['price'].toString()
+                                        : null,
+                                  ),
+                                )
+                                .toList(),
                             detailsText: 'Tap for receipt',
                           ),
                         );
@@ -338,16 +384,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
               color: const Color(0xFFF6F6E9),
               borderRadius: BorderRadius.circular(22),
             ),
-            child: const Center(
-              child: Text(
-                'LQ',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  color: Color(0xFFB98068),
-                ),
-              ),
-            ),
+            child: const CafeLogoButton(),
           ),
           const SizedBox(width: 12),
           const Text(
@@ -368,11 +405,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
     return Container(
       height: 64,
       width: 64,
-      margin: const EdgeInsets.only(top: 24), 
+      margin: const EdgeInsets.only(top: 24),
       decoration: BoxDecoration(
-        color: const Color(0xFF8C9862), 
+        color: const Color(0xFF8C9862),
         shape: BoxShape.circle,
-        border: Border.all(color: bgColor, width: 4), 
+        border: Border.all(color: bgColor, width: 4),
       ),
       child: InkWell(
         onTap: () {
@@ -383,7 +420,14 @@ class _HistoryScreenState extends State<HistoryScreen> {
           children: [
             Icon(Icons.qr_code_scanner, color: Colors.white, size: 24),
             SizedBox(height: 2),
-            Text('SCAN QR', style: TextStyle(color: Colors.white, fontSize: 8, fontWeight: FontWeight.bold)),
+            Text(
+              'SCAN QR',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 8,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
           ],
         ),
       ),

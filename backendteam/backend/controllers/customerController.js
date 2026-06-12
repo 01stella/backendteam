@@ -137,3 +137,84 @@ exports.getCustomerStamps = async (req, res) => {
     res.status(500).json({ success: false, message: error.message });
   }
 };
+
+exports.getCustomerVouchers = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const [vouchers] = await req.db.query(
+      `SELECT id, discount_percent, status, issued_at, used_at, order_id, source
+       FROM vouchers
+       WHERE customer_id = ? AND status = 'available'
+       ORDER BY issued_at ASC`,
+      [id]
+    );
+
+    res.status(200).json({
+      success: true,
+      data: vouchers
+    });
+  } catch (error) {
+    console.error("Fetch Vouchers Error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+exports.redeemStampVoucher = async (req, res) => {
+  let connection;
+
+  try {
+    const { id } = req.params;
+
+    connection = await req.db.getConnection();
+    await connection.beginTransaction();
+
+    const [stampRows] = await connection.query(
+      `SELECT COALESCE(SUM(stamp_change), 0) as total_stamps
+       FROM stamps
+       WHERE customer_id = ?`,
+      [id]
+    );
+
+    const totalStamps = parseInt(stampRows[0].total_stamps || 0, 10);
+    if (totalStamps < 10) {
+      await connection.rollback();
+      return res.status(400).json({
+        success: false,
+        message: 'You need 10 stamps to redeem a voucher.',
+        total_stamps: totalStamps
+      });
+    }
+
+    await connection.query(
+      `INSERT INTO stamps (customer_id, order_id, stamp_change, description)
+       VALUES (?, NULL, -10, ?)`,
+      [id, 'Redeemed 10 stamps for 10% voucher']
+    );
+
+    const [voucherResult] = await connection.query(
+      `INSERT INTO vouchers (customer_id, discount_percent, status, source)
+       VALUES (?, 10.00, 'available', 'stamp_redemption')`,
+      [id]
+    );
+
+    await connection.commit();
+
+    res.status(201).json({
+      success: true,
+      message: 'Voucher redeemed successfully.',
+      voucher_id: voucherResult.insertId,
+      remaining_stamps: totalStamps - 10
+    });
+  } catch (error) {
+    if (connection) {
+      await connection.rollback();
+    }
+    console.error("Redeem Voucher Error:", error);
+    res.status(500).json({ success: false, message: error.message });
+  } finally {
+    if (connection) {
+      connection.release();
+    }
+  }
+};

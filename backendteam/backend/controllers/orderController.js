@@ -62,7 +62,7 @@ exports.getAllOrders = async (req, res) => {
 
 exports.calculateOrder = async (req, res, next) => {
   try {
-    const { items } = req.body;
+    const { customer_id, items, voucher_id = null } = req.body;
 
     if (!items || !Array.isArray(items) || items.length === 0) {
       return res.status(400).json({ success: false, message: 'items array is required' });
@@ -98,7 +98,29 @@ exports.calculateOrder = async (req, res, next) => {
     // THE SINGLE SOURCE OF TRUTH FOR MATH
     const pb1 = subtotal * 0.10;
     const vat = subtotal * 0.11;
-    const grandTotal = subtotal + pb1 + vat;
+    const totalBeforeDiscount = subtotal + pb1 + vat;
+    let voucherDiscount = 0;
+
+    if (voucher_id) {
+      if (!customer_id) {
+        return res.status(400).json({ success: false, message: 'customer_id is required when using a voucher' });
+      }
+
+      const [vouchers] = await req.db.query(
+        `SELECT id, discount_percent
+         FROM vouchers
+         WHERE id = ? AND customer_id = ? AND status = 'available'`,
+        [voucher_id, customer_id]
+      );
+
+      if (!vouchers.length) {
+        return res.status(400).json({ success: false, message: 'Voucher is not available' });
+      }
+
+      voucherDiscount = totalBeforeDiscount * (Number(vouchers[0].discount_percent) / 100);
+    }
+
+    const grandTotal = Math.max(0, totalBeforeDiscount - voucherDiscount);
 
     res.status(200).json({ 
       success: true, 
@@ -106,6 +128,7 @@ exports.calculateOrder = async (req, res, next) => {
         subtotal: Math.round(subtotal),
         pb1: Math.round(pb1),
         vat: Math.round(vat),
+        discount: Math.round(voucherDiscount),
         total: Math.round(grandTotal)
       }
     });
@@ -118,6 +141,8 @@ exports.calculateOrder = async (req, res, next) => {
 
 // 2. UPDATED: The Checkout Endpoint (Calculates and SAVES the order)
 exports.createOrder = async (req, res, next) => {
+  let connection;
+
   try {
     console.log("🚀 Payload Received from Flutter:", JSON.stringify(req.body, null, 2));
     
@@ -129,7 +154,8 @@ exports.createOrder = async (req, res, next) => {
       fulfillment_type = 'pickup',
       pickup_time = null,
       delivery_floor = null,
-      delivery_room = null
+      delivery_room = null,
+      voucher_id = null
     } = req.body;
 
     if (!customer_id || !items || !Array.isArray(items) || items.length === 0) {
@@ -141,11 +167,14 @@ exports.createOrder = async (req, res, next) => {
 
     const now = new Date().toISOString().slice(0, 19).replace('T', ' ');
 
+    connection = await req.db.getConnection();
+    await connection.beginTransaction();
+
     let subtotal = 0;
 
     for (let item of items) {
       if (item.item_type === 'bundle') {
-        const [bundleData] = await req.db.query(
+        const [bundleData] = await connection.query(
           'SELECT price FROM bundles WHERE id = ?',
           [item.bundle_id]
         );
@@ -156,7 +185,7 @@ exports.createOrder = async (req, res, next) => {
 
         item.db_price = bundleData[0].price;
       } else {
-        const [menuData] = await req.db.query(
+        const [menuData] = await connection.query(
           'SELECT price FROM menu WHERE id = ?',
           [item.menu_id]
         );
@@ -173,9 +202,29 @@ exports.createOrder = async (req, res, next) => {
 
     const pb1 = subtotal * 0.10;
     const vat = subtotal * 0.11;
-    const grandTotal = Math.round(subtotal + pb1 + vat);
+    const totalBeforeDiscount = subtotal + pb1 + vat;
+    let voucherDiscount = 0;
 
-    const [orderResult] = await req.db.query(
+    if (voucher_id) {
+      const [vouchers] = await connection.query(
+        `SELECT id, discount_percent
+         FROM vouchers
+         WHERE id = ? AND customer_id = ? AND status = 'available'
+         FOR UPDATE`,
+        [voucher_id, customer_id]
+      );
+
+      if (!vouchers.length) {
+        await connection.rollback();
+        return res.status(400).json({ success: false, message: 'Voucher is not available' });
+      }
+
+      voucherDiscount = totalBeforeDiscount * (Number(vouchers[0].discount_percent) / 100);
+    }
+
+    const grandTotal = Math.round(Math.max(0, totalBeforeDiscount - voucherDiscount));
+
+    const [orderResult] = await connection.query(
       `INSERT INTO orders (
         customer_id, total, order_status, payment_method, payment_status,
         created_at, modified_at, fulfillment_type, pickup_time, delivery_floor, delivery_room
@@ -197,9 +246,18 @@ exports.createOrder = async (req, res, next) => {
 
     const newOrderId = orderResult.insertId;
 
+    if (voucher_id) {
+      await connection.query(
+        `UPDATE vouchers
+         SET status = 'used', used_at = ?, order_id = ?
+         WHERE id = ? AND customer_id = ?`,
+        [now, newOrderId, voucher_id, customer_id]
+      );
+    }
+
     for (let item of items) {
       if (item.item_type === 'bundle') {
-        const [bundleItems] = await req.db.query(
+        const [bundleItems] = await connection.query(
           `SELECT menu_item_id
            FROM bundle_items
            WHERE bundle_id = ?`,
@@ -224,7 +282,7 @@ exports.createOrder = async (req, res, next) => {
             custom => custom.menu_id === bundleItem.menu_item_id
           ) || {};
 
-          await req.db.query(
+          await connection.query(
             `INSERT INTO order_items (order_id, menu_id, quantity, ice_level, sugar_level, coffee_strength, item_price)
              VALUES (?, ?, ?, ?, ?, ?, ?)`,
             [
@@ -239,7 +297,7 @@ exports.createOrder = async (req, res, next) => {
           );
         }
       } else {
-        await req.db.query(
+        await connection.query(
           `INSERT INTO order_items (order_id, menu_id, quantity, ice_level, sugar_level, coffee_strength, item_price)
            VALUES (?, ?, ?, ?, ?, ?, ?)`,
           [
@@ -254,12 +312,26 @@ exports.createOrder = async (req, res, next) => {
         );
       }
     }
+    await connection.commit();
     req.io.emit('queue_updated');
-    res.status(201).json({ success: true, message: 'Order created', order_id: newOrderId, total: grandTotal });
+    res.status(201).json({
+      success: true,
+      message: 'Order created',
+      order_id: newOrderId,
+      total: grandTotal,
+      discount: Math.round(voucherDiscount)
+    });
 
   } catch (error) {
+    if (connection) {
+      await connection.rollback();
+    }
     console.error("❌ Controller Error:", error);
     res.status(500).json({ success: false, message: error.message });
+  } finally {
+    if (connection) {
+      connection.release();
+    }
   }
 
 };

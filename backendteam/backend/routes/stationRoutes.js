@@ -33,7 +33,30 @@ router.get('/pending/:stationCode', async (req, res) => {
 router.patch('/process/:id', async (req, res) => {
   try {
     const { id } = req.params;
+    const [items] = await req.db.query(
+      "SELECT order_id FROM order_items WHERE id = ?",
+      [id]
+    );
+
+    if (!items.length) {
+      return res.status(404).json({ success: false, message: 'Order item not found' });
+    }
+
+    const orderId = items[0].order_id;
+
     await req.db.query("UPDATE order_items SET item_status = 'processed' WHERE id = ?", [id]);
+
+    const [pendingItems] = await req.db.query(
+      "SELECT COUNT(*) AS pending_count FROM order_items WHERE order_id = ? AND item_status != 'processed'",
+      [orderId]
+    );
+
+    if (Number(pendingItems[0].pending_count) === 0) {
+      await req.db.query(
+        "UPDATE orders SET order_status = 'completed', modified_at = NOW() WHERE id = ?",
+        [orderId]
+      );
+    }
     
     // NEW: Broadcast to all connected clients that the queue updated
     req.io.emit('queue_updated'); 
